@@ -268,7 +268,7 @@ public class ContainerLaunch implements Callable<Integer> {
           localResources);
         
         // Write out the environment
-        writeLaunchEnv(containerScriptOutStream, environment, localResources,
+        exec.writeLaunchEnv(containerScriptOutStream, environment, localResources,
             launchContext.getCommands());
         
         // /////////// End of writing out container-script
@@ -479,7 +479,12 @@ public class ContainerLaunch implements Callable<Integer> {
         + appIdStr;
   }
 
-  private static abstract class ShellScriptBuilder {
+  public static abstract class ShellScriptBuilder {
+
+    public static ShellScriptBuilder create() {
+      return Shell.WINDOWS ? new WindowsShellScriptBuilder() :
+          new UnixShellScriptBuilder();
+    }
 
     private static final String LINE_SEPARATOR =
         System.getProperty("line.separator");
