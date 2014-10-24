@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.hadoop.yarn.server.nodemanager.metrics;
+package org.apache.hadoop.yarn.server.nodemanager;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
@@ -91,6 +91,11 @@ public class CompositeContainerExecutor extends ContainerExecutor {
     }
   }
 
+  public boolean isValidContainerExecutor(String execClassName) {
+    return execClassName == null || execClassName.trim().isEmpty() ||
+        executorMap.containsKey(execClassName);
+  }
+
   public ContainerExecutor getContainerExecutor(
       ContainerLaunchContext containerLaunchContext) {
     if (containerLaunchContext == null || containerLaunchContext
@@ -114,6 +119,7 @@ public class CompositeContainerExecutor extends ContainerExecutor {
     } else {
       exec = defaultExec;
     }
+    exec = exec == null? defaultExec : exec;
     LOG.info("Launch container " + containerId.toString() + " with " + exec
         .getClass().getName());
     return exec;

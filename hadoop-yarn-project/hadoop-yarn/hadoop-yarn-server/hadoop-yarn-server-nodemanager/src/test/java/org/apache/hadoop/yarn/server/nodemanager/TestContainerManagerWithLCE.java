@@ -29,7 +29,6 @@ import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
 import org.apache.hadoop.yarn.exceptions.YarnException;
 import org.apache.hadoop.yarn.server.nodemanager.containermanager.TestContainerManager;
-import org.apache.hadoop.yarn.server.nodemanager.metrics.CompositeContainerExecutor;
 import org.junit.After;
 
 public class TestContainerManagerWithLCE extends TestContainerManager {
