@@ -18,6 +18,7 @@
 package org.apache.hadoop.yarn.server.nodemanager.metrics;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableMap;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.fs.Path;
@@ -30,6 +31,7 @@ import org.apache.hadoop.yarn.server.nodemanager.containermanager.container.Cont
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -50,7 +52,7 @@ public class CompositeContainerExecutor extends ContainerExecutor {
   }
 
   public CompositeContainerExecutor(ContainerExecutor exec) {
-    this.defaultExec = exec;
+    this(ImmutableMap.of(exec.getClass().getName(), exec), exec, null);
   }
 
   @Override
@@ -102,7 +104,7 @@ public class CompositeContainerExecutor extends ContainerExecutor {
 
   public ContainerExecutor getContainerExecutor(ContainerId containerId) {
     ContainerExecutor exec;
-    if (executorMap != null) {
+    if (context != null) {
       Container container = context.getContainers().get(containerId);
       if (container == null) {
         exec = defaultExec;

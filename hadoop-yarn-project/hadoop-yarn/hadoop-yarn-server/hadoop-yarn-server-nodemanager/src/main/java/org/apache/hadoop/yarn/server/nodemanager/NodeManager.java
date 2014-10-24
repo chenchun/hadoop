@@ -28,6 +28,7 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import com.google.common.base.Splitter;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.classification.InterfaceAudience.Private;
@@ -409,17 +410,31 @@ public class NodeManager extends CompositeService
     return nodeStatusUpdater;
   }
 
+  @SuppressWarnings("unchecked")
   private CompositeContainerExecutor createContainerExecutor(Configuration
       conf, Context context) {
     Map<String, ContainerExecutor> execMap = new HashMap<String,
         ContainerExecutor>();
-    String[] containerExecutors = conf.get(YarnConfiguration
-        .NM_CONTAINER_EXECUTOR, DefaultContainerExecutor.class.getName())
-        .split(",");
+    String defaultExec = conf.get(YarnConfiguration
+        .YARN_CLIENT_CONTAINER_EXECUTOR, YarnConfiguration
+        .DEFAULT_YARN_CLIENT_CONTAINER_EXECUTOR);
+    Iterable<String> containerExecutors = Splitter.on(',').omitEmptyStrings()
+        .trimResults().split(conf.get(YarnConfiguration.NM_CONTAINER_EXECUTOR,
+        DefaultContainerExecutor.class.getName()) + "," + defaultExec);
     Class<? extends ContainerExecutor> execClass;
     for (String containerExecutor : containerExecutors) {
       if (!execMap.containsKey(containerExecutor)) {
-        execClass = getContainerExecutorClassByName(containerExecutor, conf);
+        try {
+          execClass = (Class<? extends ContainerExecutor>) conf
+              .getClassByName(containerExecutor);
+        } catch (ClassNotFoundException e) {
+          throw new YarnRuntimeException("Failed to find container executor " +
+              "class " + containerExecutor);
+        } catch (ClassCastException e) {
+          throw new YarnRuntimeException("Container executor class " +
+              containerExecutor + " should extend " + ContainerExecutor.class
+              .getName());
+        }
         ContainerExecutor exec = ReflectionUtils.newInstance(execClass, conf);
         try {
           exec.init();
@@ -429,38 +444,6 @@ public class NodeManager extends CompositeService
         execMap.put(containerExecutor, exec);
       }
     }
-    String defaultContainerExecutor = conf.get(YarnConfiguration
-        .YARN_CLIENT_CONTAINER_EXECUTOR, YarnConfiguration
-        .DEFAULT_YARN_CLIENT_CONTAINER_EXECUTOR);
-    ContainerExecutor defaultExec;
-    if (execMap.containsKey(defaultContainerExecutor)) {
-      defaultExec = execMap.get(defaultContainerExecutor);
-    } else {
-      execClass = getContainerExecutorClassByName(defaultContainerExecutor, conf);
-      defaultExec = ReflectionUtils.newInstance(execClass, conf);
-      try {
-        defaultExec.init();
-      } catch (IOException e) {
-        throw new YarnRuntimeException("Failed to initialize container executor", e);
-      }
-      execMap.put(defaultContainerExecutor, defaultExec);
-    }
-    return new CompositeContainerExecutor(execMap, defaultExec, context);
-  }
-
-  @SuppressWarnings("unchecked")
-  private Class<? extends ContainerExecutor> getContainerExecutorClassByName
-      (String execClassName, Configuration conf) {
-    try {
-      return (Class<? extends ContainerExecutor>) conf
-          .getClassByName(execClassName);
-    } catch (ClassNotFoundException e) {
-      throw new YarnRuntimeException("Failed to find container executor " +
-          "class " + execClassName);
-    } catch (ClassCastException e) {
-      throw new YarnRuntimeException("Container executor class " +
-          execClassName + " should extend " + ContainerExecutor.class
-          .getName());
-    }
+    return new CompositeContainerExecutor(execMap, execMap.get(defaultExec), context);
   }
 }
