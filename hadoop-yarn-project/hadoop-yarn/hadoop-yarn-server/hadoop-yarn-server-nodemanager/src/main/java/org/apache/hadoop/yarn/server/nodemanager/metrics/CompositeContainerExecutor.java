@@ -92,7 +92,8 @@ public class CompositeContainerExecutor extends ContainerExecutor {
   public ContainerExecutor getContainerExecutor(
       ContainerLaunchContext containerLaunchContext) {
     if (containerLaunchContext == null || containerLaunchContext
-        .getContainerExecutor() == null) {
+        .getContainerExecutor() == null || containerLaunchContext
+        .getContainerExecutor().trim().isEmpty()) {
       return defaultExec;
     } else {
       return executorMap.get(containerLaunchContext.getContainerExecutor());

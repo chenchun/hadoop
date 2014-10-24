@@ -213,6 +213,8 @@ public class ApplicationMaster {
   private int containerMemory = 10;
   // VirtualCores to request for the container on which the shell command will run
   private int containerVirtualCores = 1;
+  // Container executor
+  private String containerExecutor = "";
   // Priority of the request
   private int requestPriority;
 
@@ -479,6 +481,7 @@ public class ApplicationMaster {
         "container_memory", "10"));
     containerVirtualCores = Integer.parseInt(cliParser.getOptionValue(
         "container_vcores", "1"));
+    containerExecutor = cliParser.getOptionValue("container_executor", "");
     numTotalContainers = Integer.parseInt(cliParser.getOptionValue(
         "num_containers", "1"));
     if (numTotalContainers == 0) {
@@ -902,7 +905,7 @@ public class ApplicationMaster {
           + container.getId());
       ContainerLaunchContext ctx = Records
           .newRecord(ContainerLaunchContext.class);
-
+      ctx.setContainerExecutor(containerExecutor);
       // Set the environment
       ctx.setEnvironment(shellEnv);
 

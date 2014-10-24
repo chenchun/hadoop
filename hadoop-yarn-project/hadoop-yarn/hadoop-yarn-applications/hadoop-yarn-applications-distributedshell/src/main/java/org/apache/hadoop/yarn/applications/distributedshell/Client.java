@@ -148,6 +148,8 @@ public class Client {
   private int containerMemory = 10; 
   // Amt. of virtual cores to request for container in which shell script will be executed
   private int containerVirtualCores = 1;
+  // Container executor
+  private String containerExecutor = "";
   // No. of containers in which the shell script needs to be executed
   private int numContainers = 1;
 
@@ -241,6 +243,8 @@ public class Client {
     opts.addOption("shell_cmd_priority", true, "Priority for the shell command containers");
     opts.addOption("container_memory", true, "Amount of memory in MB to be requested to run the shell command");
     opts.addOption("container_vcores", true, "Amount of virtual cores to be requested to run the shell command");
+    opts.addOption("container_executor", true, "Container executor like " +
+        "DefaultContainerExecutor, LinuxContainerExecutor, DockerContainerExecutor, etc.");
     opts.addOption("num_containers", true, "No. of containers on which the shell command needs to be executed");
     opts.addOption("log_properties", true, "log4j.properties file");
     opts.addOption("keep_containers_across_application_attempts", false,
@@ -360,6 +364,7 @@ public class Client {
 
     containerMemory = Integer.parseInt(cliParser.getOptionValue("container_memory", "10"));
     containerVirtualCores = Integer.parseInt(cliParser.getOptionValue("container_vcores", "1"));
+    containerExecutor = cliParser.getOptionValue("container_executor", "");
     numContainers = Integer.parseInt(cliParser.getOptionValue("num_containers", "1"));
 
     if (containerMemory < 0 || containerVirtualCores < 0 || numContainers < 1) {
@@ -565,6 +570,7 @@ public class Client {
     // Set params for Application Master
     vargs.add("--container_memory " + String.valueOf(containerMemory));
     vargs.add("--container_vcores " + String.valueOf(containerVirtualCores));
+    vargs.add("--container_executor " + containerExecutor);
     vargs.add("--num_containers " + String.valueOf(numContainers));
     vargs.add("--priority " + String.valueOf(shellCmdPriority));
 
