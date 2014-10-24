@@ -43,6 +43,7 @@ import org.apache.hadoop.yarn.server.api.ResourceTracker;
 import org.apache.hadoop.yarn.server.nodemanager.NodeManager.NMContext;
 import org.apache.hadoop.yarn.server.nodemanager.containermanager.BaseContainerManagerTest;
 import org.apache.hadoop.yarn.server.nodemanager.containermanager.TestContainerManager;
+import org.apache.hadoop.yarn.server.nodemanager.metrics.CompositeContainerExecutor;
 import org.apache.hadoop.yarn.server.nodemanager.metrics.NodeManagerMetrics;
 import org.apache.hadoop.yarn.server.nodemanager.security.NMContainerTokenSecretManager;
 import org.apache.hadoop.yarn.server.nodemanager.security.NMTokenSecretManagerInNM;
@@ -93,8 +94,9 @@ public class TestEventFlow {
 
     ContainerExecutor exec = new DefaultContainerExecutor();
     exec.setConf(conf);
-
-    DeletionService del = new DeletionService(exec);
+    CompositeContainerExecutor compositeContainerExecutor = new
+        CompositeContainerExecutor(exec);
+    DeletionService del = new DeletionService(compositeContainerExecutor);
     Dispatcher dispatcher = new AsyncDispatcher();
     NodeHealthCheckerService healthChecker = new NodeHealthCheckerService();
     healthChecker.init(conf);
@@ -124,8 +126,9 @@ public class TestEventFlow {
     };
 
     DummyContainerManager containerManager =
-        new DummyContainerManager(context, exec, del, nodeStatusUpdater,
-          metrics, new ApplicationACLsManager(conf), dirsHandler);
+        new DummyContainerManager(context, compositeContainerExecutor, del,
+            nodeStatusUpdater, metrics, new ApplicationACLsManager(conf),
+            dirsHandler);
     nodeStatusUpdater.init(conf);
     ((NMContext)context).setContainerManager(containerManager);
     nodeStatusUpdater.start();

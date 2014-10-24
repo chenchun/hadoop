@@ -81,6 +81,7 @@ import org.apache.hadoop.yarn.server.nodemanager.containermanager.ContainerManag
 import org.apache.hadoop.yarn.server.nodemanager.containermanager.application.Application;
 import org.apache.hadoop.yarn.server.nodemanager.containermanager.container.Container;
 import org.apache.hadoop.yarn.server.nodemanager.containermanager.container.ContainerImpl;
+import org.apache.hadoop.yarn.server.nodemanager.metrics.CompositeContainerExecutor;
 import org.apache.hadoop.yarn.server.nodemanager.metrics.NodeManagerMetrics;
 import org.apache.hadoop.yarn.server.nodemanager.security.NMContainerTokenSecretManager;
 import org.apache.hadoop.yarn.server.nodemanager.security.NMTokenSecretManagerInNM;
@@ -877,7 +878,7 @@ public class TestNodeStatusUpdater {
       
       @Override
       protected ContainerManagerImpl createContainerManager(Context context,
-          ContainerExecutor exec, DeletionService del,
+          CompositeContainerExecutor exec, DeletionService del,
           NodeStatusUpdater nodeStatusUpdater,
           ApplicationACLsManager aclsManager,
           LocalDirsHandlerService dirsHandler) {
@@ -1089,7 +1090,7 @@ public class TestNodeStatusUpdater {
 
       @Override
       protected ContainerManagerImpl createContainerManager(Context context,
-          ContainerExecutor exec, DeletionService del,
+            CompositeContainerExecutor exec, DeletionService del,
           NodeStatusUpdater nodeStatusUpdater,
           ApplicationACLsManager aclsManager,
           LocalDirsHandlerService diskhandler) {
@@ -1232,7 +1233,7 @@ public class TestNodeStatusUpdater {
 
       @Override
       protected ContainerManagerImpl createContainerManager(Context context,
-          ContainerExecutor exec, DeletionService del,
+          CompositeContainerExecutor exec, DeletionService del,
           NodeStatusUpdater nodeStatusUpdater,
           ApplicationACLsManager aclsManager,
           LocalDirsHandlerService dirsHandler) {

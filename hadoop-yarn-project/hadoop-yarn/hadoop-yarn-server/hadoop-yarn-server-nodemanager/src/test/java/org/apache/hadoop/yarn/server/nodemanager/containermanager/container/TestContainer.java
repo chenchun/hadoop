@@ -87,6 +87,7 @@ import org.apache.hadoop.yarn.server.nodemanager.containermanager.loghandler.eve
 import org.apache.hadoop.yarn.server.nodemanager.containermanager.loghandler.event.LogHandlerEventType;
 import org.apache.hadoop.yarn.server.nodemanager.containermanager.monitor.ContainersMonitorEvent;
 import org.apache.hadoop.yarn.server.nodemanager.containermanager.monitor.ContainersMonitorEventType;
+import org.apache.hadoop.yarn.server.nodemanager.metrics.CompositeContainerExecutor;
 import org.apache.hadoop.yarn.server.nodemanager.metrics.NodeManagerMetrics;
 import org.apache.hadoop.yarn.server.utils.BuilderUtils;
 import org.junit.Test;
@@ -723,7 +724,8 @@ public class TestContainer {
           new ConcurrentHashMap<ApplicationId, Application>());
       ContainerExecutor executor = mock(ContainerExecutor.class);
       launcher =
-          new ContainersLauncher(context, dispatcher, executor, null, null);
+          new ContainersLauncher(context, dispatcher,
+              new CompositeContainerExecutor(executor), null, null);
       // create a mock ExecutorService, which will not really launch
       // ContainerLaunch at all.
       launcher.containerLauncher = mock(ExecutorService.class);

@@ -53,6 +53,7 @@ import org.apache.hadoop.yarn.server.nodemanager.containermanager.localizer.even
 import org.apache.hadoop.yarn.server.nodemanager.containermanager.localizer.event.LocalizationEvent;
 import org.apache.hadoop.yarn.server.nodemanager.containermanager.loghandler.LogHandler;
 import org.apache.hadoop.yarn.server.nodemanager.containermanager.loghandler.event.LogHandlerEvent;
+import org.apache.hadoop.yarn.server.nodemanager.metrics.CompositeContainerExecutor;
 import org.apache.hadoop.yarn.server.nodemanager.metrics.NodeManagerMetrics;
 import org.apache.hadoop.yarn.server.security.ApplicationACLsManager;
 
@@ -61,7 +62,7 @@ public class DummyContainerManager extends ContainerManagerImpl {
   private static final Log LOG = LogFactory
       .getLog(DummyContainerManager.class);
   
-  public DummyContainerManager(Context context, ContainerExecutor exec,
+  public DummyContainerManager(Context context, CompositeContainerExecutor exec,
       DeletionService deletionContext, NodeStatusUpdater nodeStatusUpdater,
       NodeManagerMetrics metrics,
       ApplicationACLsManager applicationACLsManager,
@@ -73,7 +74,7 @@ public class DummyContainerManager extends ContainerManagerImpl {
   @Override
   @SuppressWarnings("unchecked")
   protected ResourceLocalizationService createResourceLocalizationService(
-      ContainerExecutor exec, DeletionService deletionContext) {
+      CompositeContainerExecutor exec, DeletionService deletionContext) {
     return new ResourceLocalizationService(super.dispatcher, exec,
         deletionContext, super.dirsHandler) {
       @Override
@@ -143,7 +144,7 @@ public class DummyContainerManager extends ContainerManagerImpl {
   @Override
   @SuppressWarnings("unchecked")
   protected ContainersLauncher createContainersLauncher(Context context,
-      ContainerExecutor exec) {
+      CompositeContainerExecutor exec) {
     return new ContainersLauncher(context, super.dispatcher, exec,
                                   super.dirsHandler, this) {
       @Override

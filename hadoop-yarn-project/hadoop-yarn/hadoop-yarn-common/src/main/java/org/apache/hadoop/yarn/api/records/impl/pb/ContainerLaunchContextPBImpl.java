@@ -456,6 +456,24 @@ extends ContainerLaunchContext {
     this.applicationACLS.putAll(appACLs);
   }
 
+  @Override
+  public String getContainerExecutor() {
+    ContainerLaunchContextProtoOrBuilder p = viaProto ? proto : builder;
+    if (!p.hasContainerExecutor()) {
+      return null;
+    }
+    return p.getContainerExecutor();
+  }
+
+  @Override
+  public void setContainerExecutor(String containerExecutor) {
+    maybeInitBuilder();
+    if (containerExecutor == null) {
+      builder.clearContainerExecutor();
+    }
+    builder.setContainerExecutor(containerExecutor);
+  }
+
   private LocalResourcePBImpl convertFromProtoFormat(LocalResourceProto p) {
     return new LocalResourcePBImpl(p);
   }

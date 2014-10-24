@@ -115,6 +115,7 @@ import org.apache.hadoop.yarn.server.nodemanager.containermanager.loghandler.eve
 import org.apache.hadoop.yarn.server.nodemanager.containermanager.monitor.ContainersMonitor;
 import org.apache.hadoop.yarn.server.nodemanager.containermanager.monitor.ContainersMonitorEventType;
 import org.apache.hadoop.yarn.server.nodemanager.containermanager.monitor.ContainersMonitorImpl;
+import org.apache.hadoop.yarn.server.nodemanager.metrics.CompositeContainerExecutor;
 import org.apache.hadoop.yarn.server.nodemanager.metrics.NodeManagerMetrics;
 import org.apache.hadoop.yarn.server.nodemanager.security.authorize.NMPolicyProvider;
 import org.apache.hadoop.yarn.server.security.ApplicationACLsManager;
@@ -155,7 +156,7 @@ public class ContainerManagerImpl extends CompositeService implements
 
   private long waitForContainersOnShutdownMillis;
 
-  public ContainerManagerImpl(Context context, ContainerExecutor exec,
+  public ContainerManagerImpl(Context context, CompositeContainerExecutor exec,
       DeletionService deletionContext, NodeStatusUpdater nodeStatusUpdater,
       NodeManagerMetrics metrics, ApplicationACLsManager aclsManager,
       LocalDirsHandlerService dirsHandler) {
@@ -237,13 +238,13 @@ public class ContainerManagerImpl extends CompositeService implements
   }
 
   protected ResourceLocalizationService createResourceLocalizationService(
-      ContainerExecutor exec, DeletionService deletionContext) {
+      CompositeContainerExecutor exec, DeletionService deletionContext) {
     return new ResourceLocalizationService(this.dispatcher, exec,
         deletionContext, dirsHandler);
   }
 
   protected ContainersLauncher createContainersLauncher(Context context,
-      ContainerExecutor exec) {
+      CompositeContainerExecutor exec) {
     return new ContainersLauncher(context, this.dispatcher, exec, dirsHandler, this);
   }
 

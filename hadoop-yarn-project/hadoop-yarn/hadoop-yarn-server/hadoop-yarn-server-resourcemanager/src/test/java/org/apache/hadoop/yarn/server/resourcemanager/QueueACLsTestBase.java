@@ -216,7 +216,8 @@ public abstract class QueueACLsTestBase {
     Resource resource = BuilderUtils.newResource(1024, 1);
     Map<ApplicationAccessType, String> acls = createACLs(submitter, setupACLs);
     ContainerLaunchContext amContainerSpec =
-        ContainerLaunchContext.newInstance(null, null, null, null, null, acls);
+        ContainerLaunchContext.newInstance(null, null, null, null, null,
+            acls, null);
 
     ApplicationSubmissionContext appSubmissionContext =
         ApplicationSubmissionContext.newInstance(applicationId,

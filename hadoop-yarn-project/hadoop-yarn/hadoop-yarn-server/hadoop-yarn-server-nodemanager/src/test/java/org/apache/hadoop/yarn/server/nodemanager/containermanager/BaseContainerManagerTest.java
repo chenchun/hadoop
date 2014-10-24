@@ -63,6 +63,7 @@ import org.apache.hadoop.yarn.server.nodemanager.NodeStatusUpdaterImpl;
 import org.apache.hadoop.yarn.server.nodemanager.containermanager.application.Application;
 import org.apache.hadoop.yarn.server.nodemanager.containermanager.application.ApplicationState;
 import org.apache.hadoop.yarn.server.nodemanager.containermanager.container.Container;
+import org.apache.hadoop.yarn.server.nodemanager.metrics.CompositeContainerExecutor;
 import org.apache.hadoop.yarn.server.nodemanager.metrics.NodeManagerMetrics;
 import org.apache.hadoop.yarn.server.nodemanager.security.NMContainerTokenSecretManager;
 import org.apache.hadoop.yarn.server.nodemanager.security.NMTokenSecretManagerInNM;
@@ -108,7 +109,7 @@ public abstract class BaseContainerManagerTest {
       return HTTP_PORT;
     };
   };
-  protected ContainerExecutor exec;
+  protected CompositeContainerExecutor exec;
   protected DeletionService delSrvc;
   protected String user = "nobody";
   protected NodeHealthCheckerService nodeHealthChecker;
@@ -141,10 +142,10 @@ public abstract class BaseContainerManagerTest {
 
   protected ContainerManagerImpl containerManager = null;
 
-  protected ContainerExecutor createContainerExecutor() {
+  protected CompositeContainerExecutor createContainerExecutor() {
     DefaultContainerExecutor exec = new DefaultContainerExecutor();
     exec.setConf(conf);
-    return exec;
+    return new CompositeContainerExecutor(exec);
   }
 
   @Before

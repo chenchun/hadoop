@@ -29,6 +29,7 @@ import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
 import org.apache.hadoop.yarn.exceptions.YarnException;
 import org.apache.hadoop.yarn.server.nodemanager.containermanager.TestContainerManager;
+import org.apache.hadoop.yarn.server.nodemanager.metrics.CompositeContainerExecutor;
 import org.junit.After;
 
 public class TestContainerManagerWithLCE extends TestContainerManager {
@@ -195,12 +196,12 @@ public class TestContainerManagerWithLCE extends TestContainerManager {
   }
 
   @Override
-  protected ContainerExecutor createContainerExecutor() {
+  protected CompositeContainerExecutor createContainerExecutor() {
     super.conf.set(YarnConfiguration.NM_LINUX_CONTAINER_EXECUTOR_PATH, System
         .getProperty(YarnConfiguration.NM_LINUX_CONTAINER_EXECUTOR_PATH));
     LinuxContainerExecutor linuxContainerExecutor =
         new LinuxContainerExecutor();
     linuxContainerExecutor.setConf(super.conf);
-    return linuxContainerExecutor;
+    return new CompositeContainerExecutor(linuxContainerExecutor);
   }
 }

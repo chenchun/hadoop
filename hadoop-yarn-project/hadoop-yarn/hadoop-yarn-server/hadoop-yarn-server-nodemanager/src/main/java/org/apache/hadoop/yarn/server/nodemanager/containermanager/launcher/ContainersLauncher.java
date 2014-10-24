@@ -51,6 +51,7 @@ import org.apache.hadoop.yarn.server.nodemanager.containermanager.localizer.Reso
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import org.apache.hadoop.yarn.server.nodemanager.metrics.CompositeContainerExecutor;
 
 /**
  * The launcher for the containers. This service should be started only after
@@ -64,7 +65,7 @@ public class ContainersLauncher extends AbstractService
   private static final Log LOG = LogFactory.getLog(ContainersLauncher.class);
 
   private final Context context;
-  private final ContainerExecutor exec;
+  private final CompositeContainerExecutor exec;
   private final Dispatcher dispatcher;
   private final ContainerManagerImpl containerManager;
 
@@ -80,7 +81,7 @@ public class ContainersLauncher extends AbstractService
     Collections.synchronizedMap(new HashMap<ContainerId, ContainerLaunch>());
 
   public ContainersLauncher(Context context, Dispatcher dispatcher,
-      ContainerExecutor exec, LocalDirsHandlerService dirsHandler,
+      CompositeContainerExecutor exec, LocalDirsHandlerService dirsHandler,
       ContainerManagerImpl containerManager) {
     super("containers-launcher");
     this.exec = exec;
@@ -120,8 +121,10 @@ public class ContainersLauncher extends AbstractService
               containerId.getApplicationAttemptId().getApplicationId());
 
         ContainerLaunch launch =
-            new ContainerLaunch(context, getConfig(), dispatcher, exec, app,
-              event.getContainer(), dirsHandler, containerManager);
+            new ContainerLaunch(context, getConfig(), dispatcher,
+                exec.getContainerExecutor(event.getContainer()
+                    .getContainerId()), app, event.getContainer(),
+                dirsHandler, containerManager);
         containerLauncher.submit(launch);
         running.put(containerId, launch);
         break;

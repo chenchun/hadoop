@@ -113,6 +113,7 @@ import org.apache.hadoop.yarn.server.nodemanager.containermanager.localizer.even
 import org.apache.hadoop.yarn.server.nodemanager.containermanager.localizer.event.ResourceRequestEvent;
 import org.apache.hadoop.yarn.server.nodemanager.containermanager.localizer.security.LocalizerTokenIdentifier;
 import org.apache.hadoop.yarn.server.nodemanager.containermanager.localizer.security.LocalizerTokenSecretManager;
+import org.apache.hadoop.yarn.server.nodemanager.metrics.CompositeContainerExecutor;
 import org.apache.hadoop.yarn.server.nodemanager.security.authorize.NMPolicyProvider;
 import org.apache.hadoop.yarn.server.nodemanager.util.NodeManagerBuilderUtils;
 import org.apache.hadoop.yarn.util.ConverterUtils;
@@ -135,7 +136,7 @@ public class ResourceLocalizationService extends CompositeService
   private long cacheTargetSize;
   private long cacheCleanupPeriod;
 
-  private final ContainerExecutor exec;
+  private final CompositeContainerExecutor exec;
   protected final Dispatcher dispatcher;
   private final DeletionService delService;
   private LocalizerTracker localizerTracker;
@@ -162,7 +163,7 @@ public class ResourceLocalizationService extends CompositeService
     new ConcurrentHashMap<String,LocalResourcesTracker>();
 
   public ResourceLocalizationService(Dispatcher dispatcher,
-      ContainerExecutor exec, DeletionService delService,
+      CompositeContainerExecutor exec, DeletionService delService,
       LocalDirsHandlerService dirsHandler) {
 
     super(ResourceLocalizationService.class.getName());
@@ -992,7 +993,9 @@ public class ResourceLocalizationService extends CompositeService
         List<String> localDirs = dirsHandler.getLocalDirs();
         List<String> logDirs = dirsHandler.getLogDirs();
         if (dirsHandler.areDisksHealthy()) {
-          exec.startLocalizer(nmPrivateCTokensPath, localizationServerAddress,
+          exec.getContainerExecutor(context.getContainerId())
+              .startLocalizer(nmPrivateCTokensPath,
+              localizationServerAddress,
               context.getUser(),
               ConverterUtils.toString(
                   context.getContainerId().

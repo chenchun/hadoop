@@ -120,6 +120,7 @@ import org.apache.hadoop.yarn.server.nodemanager.containermanager.localizer.even
 import org.apache.hadoop.yarn.server.nodemanager.containermanager.localizer.event.LocalizerEventType;
 import org.apache.hadoop.yarn.server.nodemanager.containermanager.localizer.event.LocalizerResourceRequestEvent;
 import org.apache.hadoop.yarn.server.nodemanager.containermanager.localizer.event.ResourceFailedLocalizationEvent;
+import org.apache.hadoop.yarn.server.nodemanager.metrics.CompositeContainerExecutor;
 import org.apache.hadoop.yarn.server.utils.BuilderUtils;
 import org.apache.hadoop.yarn.util.ConverterUtils;
 import org.junit.After;
@@ -187,8 +188,8 @@ public class TestResourceLocalizationService {
     diskhandler.init(conf);
 
     ResourceLocalizationService locService =
-      spy(new ResourceLocalizationService(dispatcher, exec, delService,
-                                          diskhandler));
+      spy(new ResourceLocalizationService(dispatcher,
+          new CompositeContainerExecutor(exec), delService, diskhandler));
     doReturn(lfs)
       .when(locService).getLocalFileContext(isA(Configuration.class));
     try {
@@ -252,8 +253,8 @@ public class TestResourceLocalizationService {
     delService.start();
 
     ResourceLocalizationService rawService =
-      new ResourceLocalizationService(dispatcher, exec, delService,
-                                      dirsHandler);
+      new ResourceLocalizationService(dispatcher,
+          new CompositeContainerExecutor(exec), delService, dirsHandler);
     ResourceLocalizationService spyService = spy(rawService);
     doReturn(mockServer).when(spyService).createServer();
     doReturn(mockLocallilzerTracker).when(spyService).createLocalizerTracker(
@@ -435,8 +436,8 @@ public class TestResourceLocalizationService {
     delService.start();
 
     ResourceLocalizationService rawService =
-      new ResourceLocalizationService(dispatcher, exec, delService,
-                                      dirsHandler);
+      new ResourceLocalizationService(dispatcher,
+          new CompositeContainerExecutor(exec), delService, dirsHandler);
     ResourceLocalizationService spyService = spy(rawService);
     doReturn(mockServer).when(spyService).createServer();
     doReturn(lfs).when(spyService).getLocalFileContext(isA(Configuration.class));
@@ -615,8 +616,8 @@ public class TestResourceLocalizationService {
 
     try {
       ResourceLocalizationService rawService =
-          new ResourceLocalizationService(dispatcher, exec, delService,
-                                        dirsHandler);
+          new ResourceLocalizationService(dispatcher,
+              new CompositeContainerExecutor(exec), delService, dirsHandler);
       ResourceLocalizationService spyService = spy(rawService);
       doReturn(mockServer).when(spyService).createServer();
       doReturn(lfs).when(spyService).getLocalFileContext(
@@ -724,8 +725,8 @@ public class TestResourceLocalizationService {
 
     try {
       ResourceLocalizationService rawService =
-          new ResourceLocalizationService(dispatcher, exec, delService,
-            dirsHandlerSpy);
+          new ResourceLocalizationService(dispatcher,
+              new CompositeContainerExecutor(exec), delService, dirsHandlerSpy);
       ResourceLocalizationService spyService = spy(rawService);
       doReturn(mockServer).when(spyService).createServer();
       doReturn(lfs).when(spyService).getLocalFileContext(
@@ -837,8 +838,9 @@ public class TestResourceLocalizationService {
       dispatcher1.start();
 
       ResourceLocalizationService rls =
-          new ResourceLocalizationService(dispatcher1, exec, delService,
-            localDirHandler);
+          new ResourceLocalizationService(dispatcher1,
+              new CompositeContainerExecutor(exec), delService,
+              localDirHandler);
       dispatcher1.register(LocalizationEventType.class, rls);
       rls.init(conf);
 
@@ -990,8 +992,9 @@ public class TestResourceLocalizationService {
       dispatcher1.start();
 
       ResourceLocalizationService rls =
-          new ResourceLocalizationService(dispatcher1, exec, delService,
-            localDirHandler);
+          new ResourceLocalizationService(dispatcher1,
+              new CompositeContainerExecutor(exec), delService,
+              localDirHandler);
       dispatcher1.register(LocalizationEventType.class, rls);
       rls.init(conf);
 
@@ -1156,8 +1159,8 @@ public class TestResourceLocalizationService {
       // Creating and initializing ResourceLocalizationService but not starting
       // it as otherwise it will remove requests from pending queue.
       ResourceLocalizationService rawService =
-          new ResourceLocalizationService(dispatcher1, exec, delService,
-            dirsHandler);
+          new ResourceLocalizationService(dispatcher1,
+              new CompositeContainerExecutor(exec), delService, dirsHandler);
       ResourceLocalizationService spyService = spy(rawService);
       dispatcher1.register(LocalizationEventType.class, spyService);
       spyService.init(conf);

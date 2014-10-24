@@ -531,7 +531,12 @@ public class YarnConfiguration extends Configuration {
   public static final String NM_CONTAINER_EXECUTOR = 
     NM_PREFIX + "container-executor.class";
 
-  /**  
+  public static final String YARN_CLIENT_CONTAINER_EXECUTOR =
+      YARN_PREFIX + "container-executor.class";
+  public static final String DEFAULT_YARN_CLIENT_CONTAINER_EXECUTOR =
+      "org.apache.hadoop.yarn.server.nodemanager.DefaultContainerExecutor";
+
+  /**
    * Adjustment to make to the container os scheduling priority.
    * The valid values for this could vary depending on the platform.
    * On Linux, higher values mean run the containers at a less 

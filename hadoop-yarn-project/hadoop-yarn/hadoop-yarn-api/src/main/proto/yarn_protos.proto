@@ -340,6 +340,7 @@ message ContainerLaunchContextProto {
   repeated StringStringMapProto environment = 4;
   repeated string command = 5;
   repeated ApplicationACLMapProto application_ACLs = 6;
+  optional string container_executor = 7;
 }
 
 message ContainerStatusProto {

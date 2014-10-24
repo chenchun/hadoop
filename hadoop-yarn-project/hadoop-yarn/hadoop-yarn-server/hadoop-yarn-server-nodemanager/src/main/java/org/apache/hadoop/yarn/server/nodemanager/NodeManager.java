@@ -19,6 +19,10 @@
 package org.apache.hadoop.yarn.server.nodemanager;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentSkipListMap;
@@ -49,6 +53,7 @@ import org.apache.hadoop.yarn.server.api.records.NodeHealthStatus;
 import org.apache.hadoop.yarn.server.nodemanager.containermanager.ContainerManagerImpl;
 import org.apache.hadoop.yarn.server.nodemanager.containermanager.application.Application;
 import org.apache.hadoop.yarn.server.nodemanager.containermanager.container.Container;
+import org.apache.hadoop.yarn.server.nodemanager.metrics.CompositeContainerExecutor;
 import org.apache.hadoop.yarn.server.nodemanager.metrics.NodeManagerMetrics;
 import org.apache.hadoop.yarn.server.nodemanager.security.NMContainerTokenSecretManager;
 import org.apache.hadoop.yarn.server.nodemanager.security.NMTokenSecretManagerInNM;
@@ -93,7 +98,7 @@ public class NodeManager extends CompositeService
   }
 
   protected ContainerManagerImpl createContainerManager(Context context,
-      ContainerExecutor exec, DeletionService del,
+      CompositeContainerExecutor exec, DeletionService del,
       NodeStatusUpdater nodeStatusUpdater, ApplicationACLsManager aclsManager,
       LocalDirsHandlerService dirsHandler) {
     return new ContainerManagerImpl(context, exec, del, nodeStatusUpdater,
@@ -135,17 +140,6 @@ public class NodeManager extends CompositeService
     
     this.aclsManager = new ApplicationACLsManager(conf);
 
-    ContainerExecutor exec = ReflectionUtils.newInstance(
-        conf.getClass(YarnConfiguration.NM_CONTAINER_EXECUTOR,
-          DefaultContainerExecutor.class, ContainerExecutor.class), conf);
-    try {
-      exec.init();
-    } catch (IOException e) {
-      throw new YarnRuntimeException("Failed to initialize container executor", e);
-    }    
-    DeletionService del = createDeletionService(exec);
-    addService(del);
-
     // NodeManager level dispatcher
     this.dispatcher = new AsyncDispatcher();
 
@@ -155,6 +149,11 @@ public class NodeManager extends CompositeService
 
     this.context = createNMContext(containerTokenSecretManager,
         nmTokenSecretManager);
+
+    CompositeContainerExecutor exec = createContainerExecutor(conf, context);
+
+    DeletionService del = createDeletionService(exec);
+    addService(del);
     
     nodeStatusUpdater =
         createNodeStatusUpdater(context, dispatcher, nodeHealthChecker);
@@ -408,5 +407,60 @@ public class NodeManager extends CompositeService
   @Private
   public NodeStatusUpdater getNodeStatusUpdater() {
     return nodeStatusUpdater;
+  }
+
+  private CompositeContainerExecutor createContainerExecutor(Configuration
+      conf, Context context) {
+    Map<String, ContainerExecutor> execMap = new HashMap<String,
+        ContainerExecutor>();
+    String[] containerExecutors = conf.get(YarnConfiguration
+        .NM_CONTAINER_EXECUTOR, DefaultContainerExecutor.class.getName())
+        .split(",");
+    Class<? extends ContainerExecutor> execClass;
+    for (String containerExecutor : containerExecutors) {
+      if (!execMap.containsKey(containerExecutor)) {
+        execClass = getContainerExecutorClassByName(containerExecutor, conf);
+        ContainerExecutor exec = ReflectionUtils.newInstance(execClass, conf);
+        try {
+          exec.init();
+        } catch (IOException e) {
+          throw new YarnRuntimeException("Failed to initialize container executor", e);
+        }
+        execMap.put(containerExecutor, exec);
+      }
+    }
+    String defaultContainerExecutor = conf.get(YarnConfiguration
+        .YARN_CLIENT_CONTAINER_EXECUTOR, YarnConfiguration
+        .DEFAULT_YARN_CLIENT_CONTAINER_EXECUTOR);
+    ContainerExecutor defaultExec;
+    if (execMap.containsKey(defaultContainerExecutor)) {
+      defaultExec = execMap.get(defaultContainerExecutor);
+    } else {
+      execClass = getContainerExecutorClassByName(defaultContainerExecutor, conf);
+      defaultExec = ReflectionUtils.newInstance(execClass, conf);
+      try {
+        defaultExec.init();
+      } catch (IOException e) {
+        throw new YarnRuntimeException("Failed to initialize container executor", e);
+      }
+      execMap.put(defaultContainerExecutor, defaultExec);
+    }
+    return new CompositeContainerExecutor(execMap, defaultExec, context);
+  }
+
+  @SuppressWarnings("unchecked")
+  private Class<? extends ContainerExecutor> getContainerExecutorClassByName
+      (String execClassName, Configuration conf) {
+    try {
+      return (Class<? extends ContainerExecutor>) conf
+          .getClassByName(execClassName);
+    } catch (ClassNotFoundException e) {
+      throw new YarnRuntimeException("Failed to find container executor " +
+          "class " + execClassName);
+    } catch (ClassCastException e) {
+      throw new YarnRuntimeException("Container executor class " +
+          execClassName + " should extend " + ContainerExecutor.class
+          .getName());
+    }
   }
 }

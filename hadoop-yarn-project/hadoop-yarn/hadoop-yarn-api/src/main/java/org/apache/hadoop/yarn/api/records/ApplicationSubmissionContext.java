@@ -62,7 +62,7 @@ public abstract class ApplicationSubmissionContext {
       Priority priority, ContainerLaunchContext amContainer,
       boolean isUnmanagedAM, boolean cancelTokensWhenComplete,
       int maxAppAttempts, Resource resource, String applicationType,
-      boolean keepContainers) {
+      boolean keepContainers, String containerExecutor) {
     ApplicationSubmissionContext context =
         Records.newRecord(ApplicationSubmissionContext.class);
     context.setApplicationId(applicationId);
@@ -88,7 +88,7 @@ public abstract class ApplicationSubmissionContext {
       int maxAppAttempts, Resource resource, String applicationType) {
     return newInstance(applicationId, applicationName, queue, priority,
       amContainer, isUnmanagedAM, cancelTokensWhenComplete, maxAppAttempts,
-      resource, null, false);
+      resource, null, false, null);
   }
 
   @Public
