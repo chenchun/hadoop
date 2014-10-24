@@ -352,6 +352,8 @@ public class ApplicationMaster {
         "Amount of memory in MB to be requested to run the shell command");
     opts.addOption("container_vcores", true,
         "Amount of virtual cores to be requested to run the shell command");
+    opts.addOption("container_executor", true, "Container executor like " +
+        "DefaultContainerExecutor, LinuxContainerExecutor, DockerContainerExecutor, etc.");
     opts.addOption("num_containers", true,
         "No. of containers on which the shell command needs to be executed");
     opts.addOption("priority", true, "Application Priority. Default 0");
