@@ -468,7 +468,7 @@ public class YARNRunner implements ClientProtocol {
     // Setup ContainerLaunchContext for AM container
     ContainerLaunchContext amContainer =
         ContainerLaunchContext.newInstance(localResources, environment,
-          vargsFinal, null, securityTokens, acls);
+          vargsFinal, null, securityTokens, acls, null);
 
     Collection<String> tagsFromConf =
         jobConf.getTrimmedStringCollection(MRJobConfig.JOB_TAGS);

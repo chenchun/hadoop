@@ -783,7 +783,7 @@ public abstract class TaskAttemptImpl implements
     // container separately.
     ContainerLaunchContext container =
         ContainerLaunchContext.newInstance(localResources, environment, null,
-          serviceData, taskCredentialsBuffer, applicationACLs);
+          serviceData, taskCredentialsBuffer, applicationACLs, null);
 
     return container;
   }
@@ -827,7 +827,7 @@ public abstract class TaskAttemptImpl implements
     ContainerLaunchContext container = ContainerLaunchContext.newInstance(
         commonContainerSpec.getLocalResources(), myEnv, commands,
         myServiceData, commonContainerSpec.getTokens().duplicate(),
-        applicationACLs);
+        applicationACLs, null);
 
     return container;
   }
