@@ -226,7 +226,9 @@ public interface ApplicationConstants {
      * Comma separate list of directories that the container should use for
      * logging.
      */
-    LOG_DIRS("LOG_DIRS");
+    LOG_DIRS("LOG_DIRS"),
+
+    DOCKER_IMAGE_NAME("DOCKER_IMAGE_NAME");
 
     private final String variable;
     private Environment(String variable) {

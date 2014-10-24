@@ -113,7 +113,6 @@ public class TestDockerContainerExecutor {
     }
     dockerUrl = " -H " + dockerUrl;
     dockerExec = "docker " + dockerUrl;
-    conf.set(YarnConfiguration.NM_DOCKER_CONTAINER_EXECUTOR_IMAGE_NAME, yarnImage);
     conf.set(YarnConfiguration.NM_DOCKER_CONTAINER_EXECUTOR_EXEC_NAME, dockerExec);
     exec = new DockerContainerExecutor();
     dirsHandler = new LocalDirsHandlerService();
@@ -201,7 +200,7 @@ public class TestDockerContainerExecutor {
     }
 
     Map<String, String> env = new HashMap<String, String>();
-    env.put(YarnConfiguration.NM_DOCKER_CONTAINER_EXECUTOR_IMAGE_NAME, testImage);
+    env.put(ApplicationConstants.Environment.DOCKER_IMAGE_NAME.key(), testImage);
     String touchFileName = "touch-file-" + System.currentTimeMillis();
     File touchFile = new File(dirsHandler.getLocalDirs().get(0), touchFileName);
     ContainerId cId = getNextContainerId();

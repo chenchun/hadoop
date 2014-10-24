@@ -800,10 +800,6 @@ public class YarnConfiguration extends Configuration {
   public static final String NM_HEALTH_CHECK_SCRIPT_OPTS = 
     NM_PREFIX + "health-checker.script.opts";
 
-  /** The Docker image name(For DockerContainerExecutor).*/
-  public static final String NM_DOCKER_CONTAINER_EXECUTOR_IMAGE_NAME =
-    NM_PREFIX + "docker-container-executor.image-name";
-
   /** The name of the docker executor (For DockerContainerExecutor).*/
   public static final String NM_DOCKER_CONTAINER_EXECUTOR_EXEC_NAME =
     NM_PREFIX + "docker-container-executor.exec-name";

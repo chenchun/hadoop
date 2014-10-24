@@ -266,7 +266,6 @@ public class ContainerLaunch implements Callable<Integer> {
         // Sanitize the container's environment
         sanitizeEnv(environment, containerWorkDir, appDirs, containerLogDirs,
           localResources);
-        environment.put(YarnConfiguration.NM_DOCKER_CONTAINER_EXECUTOR_IMAGE_NAME, "centos");
         // Write out the environment
         exec.writeLaunchEnv(containerScriptOutStream, environment, localResources,
             launchContext.getCommands());

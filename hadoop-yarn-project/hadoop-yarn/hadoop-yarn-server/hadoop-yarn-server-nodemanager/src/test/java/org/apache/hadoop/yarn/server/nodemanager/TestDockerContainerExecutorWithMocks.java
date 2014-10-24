@@ -28,6 +28,7 @@ import org.apache.hadoop.fs.FileUtil;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.hadoop.util.Shell;
+import org.apache.hadoop.yarn.api.ApplicationConstants;
 import org.apache.hadoop.yarn.api.records.ContainerId;
 import org.apache.hadoop.yarn.api.records.ContainerLaunchContext;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
@@ -81,7 +82,6 @@ public class TestDockerContainerExecutorWithMocks {
     conf.set(YarnConfiguration.NM_LINUX_CONTAINER_EXECUTOR_PATH, executorPath);
     conf.set(YarnConfiguration.NM_LOCAL_DIRS, "/tmp/nm-local-dir" + time);
     conf.set(YarnConfiguration.NM_LOG_DIRS, "/tmp/userlogs" + time);
-    conf.set(YarnConfiguration.NM_DOCKER_CONTAINER_EXECUTOR_IMAGE_NAME, yarnImage);
     conf.set(YarnConfiguration.NM_DOCKER_CONTAINER_EXECUTOR_EXEC_NAME , DOCKER_LAUNCH_COMMAND);
     dockerContainerExecutor = new DockerContainerExecutor();
     dirsHandler = new LocalDirsHandlerService();
@@ -132,9 +132,7 @@ public class TestDockerContainerExecutorWithMocks {
     when(cId.toString()).thenReturn(containerId);
 
     when(context.getEnvironment()).thenReturn(env);
-    env.put(YarnConfiguration.NM_DOCKER_CONTAINER_EXECUTOR_IMAGE_NAME, testImage);
-    dockerContainerExecutor.getConf()
-        .set(YarnConfiguration.NM_DOCKER_CONTAINER_EXECUTOR_IMAGE_NAME, testImage);
+    env.put(ApplicationConstants.Environment.DOCKER_IMAGE_NAME.key(), testImage);
     Path scriptPath = new Path("file:///bin/echo");
     Path tokensPath = new Path("file:///dev/null");
 
@@ -164,9 +162,7 @@ public class TestDockerContainerExecutorWithMocks {
     when(cId.toString()).thenReturn(containerId);
 
     when(context.getEnvironment()).thenReturn(env);
-    env.put(YarnConfiguration.NM_DOCKER_CONTAINER_EXECUTOR_IMAGE_NAME, testImage);
-    dockerContainerExecutor.getConf()
-      .set(YarnConfiguration.NM_DOCKER_CONTAINER_EXECUTOR_IMAGE_NAME, testImage);
+    env.put(ApplicationConstants.Environment.DOCKER_IMAGE_NAME.key(), testImage);
     Path scriptPath = new Path("file:///bin/echo");
     Path tokensPath = new Path("file:///dev/null");
 
@@ -196,7 +192,7 @@ public class TestDockerContainerExecutorWithMocks {
     when(cId.toString()).thenReturn(containerId);
 
     when(context.getEnvironment()).thenReturn(env);
-    env.put(YarnConfiguration.NM_DOCKER_CONTAINER_EXECUTOR_IMAGE_NAME, testImage);
+    env.put(ApplicationConstants.Environment.DOCKER_IMAGE_NAME.key(), testImage);
     Path scriptPath = new Path("file:///bin/echo");
     Path tokensPath = new Path("file:///dev/null");
 

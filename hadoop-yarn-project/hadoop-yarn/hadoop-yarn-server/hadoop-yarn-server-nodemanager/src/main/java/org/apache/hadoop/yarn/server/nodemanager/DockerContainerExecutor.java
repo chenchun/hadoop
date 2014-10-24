@@ -32,6 +32,7 @@ import org.apache.hadoop.io.IOUtils;
 import org.apache.hadoop.util.Shell;
 import org.apache.hadoop.util.Shell.ShellCommandExecutor;
 import org.apache.hadoop.util.StringUtils;
+import org.apache.hadoop.yarn.api.ApplicationConstants;
 import org.apache.hadoop.yarn.api.records.ContainerId;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
 import org.apache.hadoop.yarn.factory.providers.RecordFactoryProvider;
@@ -108,7 +109,7 @@ public class DockerContainerExecutor extends ContainerExecutor {
                              String userName, String appId, Path containerWorkDir,
                              List<String> localDirs, List<String> logDirs) throws IOException {
     String containerImageName = container.getLaunchContext().getEnvironment()
-        .get(YarnConfiguration.NM_DOCKER_CONTAINER_EXECUTOR_IMAGE_NAME);
+        .get(ApplicationConstants.Environment.DOCKER_IMAGE_NAME.key());
     if (LOG.isDebugEnabled()) {
       LOG.debug("containerImageName from launchContext: " + containerImageName);
     }
@@ -244,12 +245,11 @@ public class DockerContainerExecutor extends ContainerExecutor {
     ContainerLaunch.ShellScriptBuilder sb = ContainerLaunch.ShellScriptBuilder.create();
 
     Set<String> exclusionSet = new HashSet<String>();
-    exclusionSet.add(YarnConfiguration.NM_DOCKER_CONTAINER_EXECUTOR_IMAGE_NAME);
-    exclusionSet.add("HADOOP_YARN_HOME");
-    exclusionSet.add("HADOOP_COMMON_HOME");
-    exclusionSet.add("HADOOP_HDFS_HOME");
-    exclusionSet.add("HADOOP_COMMON_HOME");
-    exclusionSet.add("JAVA_HOME");
+    exclusionSet.add(ApplicationConstants.Environment.DOCKER_IMAGE_NAME.key());
+    exclusionSet.add(ApplicationConstants.Environment.HADOOP_YARN_HOME.key());
+    exclusionSet.add(ApplicationConstants.Environment.HADOOP_COMMON_HOME.key());
+    exclusionSet.add(ApplicationConstants.Environment.HADOOP_HDFS_HOME.key());
+    exclusionSet.add(ApplicationConstants.Environment.JAVA_HOME.key());
 
     if (environment != null) {
       for (Map.Entry<String,String> env : environment.entrySet()) {
