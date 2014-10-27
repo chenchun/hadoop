@@ -17,6 +17,7 @@
  */
 package org.apache.hadoop.yarn.server.nodemanager;
 
+import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.logging.Log;
@@ -42,11 +43,13 @@ public class CompositeContainerExecutor extends ContainerExecutor {
   private Map<String, ContainerExecutor> executorMap;
   private ContainerExecutor defaultExec;
   private Context context;
+  private String validContainerExecutor;
 
   public CompositeContainerExecutor(Map<String, ContainerExecutor> executorMap,
       ContainerExecutor defaultExec, Context context) {
     Preconditions.checkNotNull(executorMap);
     this.executorMap = executorMap;
+    this.validContainerExecutor = Joiner.on(",").join(executorMap.keySet());
     this.defaultExec = defaultExec;
     this.context = context;
   }
@@ -123,5 +126,9 @@ public class CompositeContainerExecutor extends ContainerExecutor {
     LOG.info("Launch container " + containerId.toString() + " with " + exec
         .getClass().getName());
     return exec;
+  }
+
+  public String getValidContainerExecutor() {
+    return this.validContainerExecutor;
   }
 }

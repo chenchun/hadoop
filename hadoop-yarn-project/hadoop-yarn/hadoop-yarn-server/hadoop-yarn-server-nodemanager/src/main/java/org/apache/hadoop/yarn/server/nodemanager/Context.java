@@ -66,4 +66,6 @@ public interface Context {
   LocalDirsHandlerService getLocalDirsHandler();
 
   ApplicationACLsManager getApplicationACLsManager();
+
+  CompositeContainerExecutor getCompositeContainerExecutor();
 }

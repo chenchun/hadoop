@@ -254,6 +254,7 @@ public class NodeManager extends CompositeService
     private WebServer webServer;
     private final NodeHealthStatus nodeHealthStatus = RecordFactoryProvider
         .getRecordFactory(null).newRecordInstance(NodeHealthStatus.class);
+    private CompositeContainerExecutor compositeContainerExecutor;
         
     public NMContext(NMContainerTokenSecretManager containerTokenSecretManager,
         NMTokenSecretManagerInNM nmTokenSecretManager,
@@ -330,6 +331,16 @@ public class NodeManager extends CompositeService
     @Override
     public ApplicationACLsManager getApplicationACLsManager() {
       return aclsManager;
+    }
+
+    public void setCompositeContainerExecutor(CompositeContainerExecutor
+                                                  compositeContainerExecutor) {
+      this.compositeContainerExecutor = compositeContainerExecutor;
+    }
+
+    @Override
+    public CompositeContainerExecutor getCompositeContainerExecutor() {
+      return compositeContainerExecutor;
     }
   }
 
