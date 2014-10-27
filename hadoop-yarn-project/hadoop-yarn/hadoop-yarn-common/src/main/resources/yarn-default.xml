@@ -616,10 +616,21 @@
   </property>
 
   <property>
-    <description>who will execute(launch) the containers.</description>
+    <description>who will execute(launch) the containers. May
+      define multiple container executors separated by commas and
+      choose specific container executor in containerLaunchContext when
+      submit containers.</description>
     <name>yarn.nodemanager.container-executor.class</name>
     <value>org.apache.hadoop.yarn.server.nodemanager.DefaultContainerExecutor</value>
 <!--<value>org.apache.hadoop.yarn.server.nodemanager.LinuxContainerExecutor</value>-->
+  </property>
+
+  <property>
+    <description>The default container executor to execute(launch) the
+      containers when submit containers without specify which container
+      executor to execute the containers.</description>
+    <name>yarn.client.container-executor.class</name>
+    <value>org.apache.hadoop.yarn.server.nodemanager.DefaultContainerExecutor</value>
   </property>
 
   <property>

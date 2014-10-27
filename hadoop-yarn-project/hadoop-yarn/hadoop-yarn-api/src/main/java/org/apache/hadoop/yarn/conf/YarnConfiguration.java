@@ -531,8 +531,13 @@ public class YarnConfiguration extends Configuration {
   public static final String NM_CONTAINER_EXECUTOR = 
     NM_PREFIX + "container-executor.class";
 
+  /**
+   * The default container executor to execute(launch) the containers when
+   * submit containers without specify which container executor to execute
+   * the containers.
+   */
   public static final String YARN_CLIENT_CONTAINER_EXECUTOR =
-      YARN_PREFIX + "container-executor.class";
+      YARN_PREFIX + "client.container-executor.class";
   public static final String DEFAULT_YARN_CLIENT_CONTAINER_EXECUTOR =
       "org.apache.hadoop.yarn.server.nodemanager.DefaultContainerExecutor";
 

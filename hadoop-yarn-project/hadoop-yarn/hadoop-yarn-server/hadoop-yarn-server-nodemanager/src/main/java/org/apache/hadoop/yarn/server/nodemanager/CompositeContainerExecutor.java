@@ -99,28 +99,22 @@ public class CompositeContainerExecutor extends ContainerExecutor {
         executorMap.containsKey(execClassName);
   }
 
-  public ContainerExecutor getContainerExecutor(
-      ContainerLaunchContext containerLaunchContext) {
-    if (containerLaunchContext == null || containerLaunchContext
-        .getContainerExecutor() == null || containerLaunchContext
-        .getContainerExecutor().trim().isEmpty()) {
-      return defaultExec;
-    } else {
-      return executorMap.get(containerLaunchContext.getContainerExecutor());
-    }
-  }
-
   public ContainerExecutor getContainerExecutor(ContainerId containerId) {
-    ContainerExecutor exec;
+    ContainerExecutor exec = null;
     if (context != null) {
       Container container = context.getContainers().get(containerId);
       if (container == null) {
         exec = defaultExec;
       } else {
-        exec = getContainerExecutor(container.getLaunchContext());
+        ContainerLaunchContext launchContext = container.getLaunchContext();
+        if (launchContext == null
+            || launchContext.getContainerExecutor() == null
+            || launchContext.getContainerExecutor().trim().isEmpty()) {
+          exec = defaultExec;
+        } else {
+          exec = executorMap.get(launchContext.getContainerExecutor());
+        }
       }
-    } else {
-      exec = defaultExec;
     }
     exec = exec == null? defaultExec : exec;
     LOG.info("Launch container " + containerId.toString() + " with " + exec
