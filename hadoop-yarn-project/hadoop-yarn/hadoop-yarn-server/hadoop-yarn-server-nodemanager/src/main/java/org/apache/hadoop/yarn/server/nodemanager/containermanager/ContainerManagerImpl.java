@@ -575,9 +575,10 @@ public class ContainerManagerImpl extends CompositeService implements
     ContainerLaunchContext launchContext = request.getContainerLaunchContext();
     if (!context.getCompositeContainerExecutor().isValidContainerExecutor
         (launchContext.getContainerExecutor())) {
-      throw new YarnException("Container executor is invalid, " +
+      throw new YarnException("Container " + containerId + " with invalid " +
+          "container executor " + launchContext.getContainerExecutor() + ", " +
           "please use " + context.getCompositeContainerExecutor()
-          .getValidContainerExecutor() + " instead.");
+          .getValidContainerExecutor()+ " instead.");
     }
     Map<String, ByteBuffer> serviceData = getAuxServiceMetaData();
     if (launchContext.getServiceData()!=null && 
