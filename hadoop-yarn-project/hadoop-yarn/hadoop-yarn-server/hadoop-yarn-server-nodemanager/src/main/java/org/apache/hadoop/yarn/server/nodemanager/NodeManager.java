@@ -151,6 +151,7 @@ public class NodeManager extends CompositeService
         nmTokenSecretManager);
 
     CompositeContainerExecutor exec = createContainerExecutor(conf, context);
+    ((NMContext) context).setCompositeContainerExecutor(exec);
 
     DeletionService del = createDeletionService(exec);
     addService(del);
