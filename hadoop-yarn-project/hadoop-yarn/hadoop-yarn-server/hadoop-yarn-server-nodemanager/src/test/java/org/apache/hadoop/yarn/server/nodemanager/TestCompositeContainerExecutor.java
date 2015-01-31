@@ -41,16 +41,13 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class TestCompositeContainerExecutor extends BaseContainerManagerTest {
-  private ValidContainerExecutor validExec;
 
   public TestCompositeContainerExecutor() throws
       UnsupportedFileSystemException {
@@ -66,14 +63,12 @@ public class TestCompositeContainerExecutor extends BaseContainerManagerTest {
 
   @Override
   protected CompositeContainerExecutor createContainerExecutor() {
-    Map<String, ContainerExecutor> executorMap = new HashMap<String, ContainerExecutor>();
-    validExec = new ValidContainerExecutor();
-    DefaultContainerExecutor defaultExec = new DefaultContainerExecutor();
-    validExec.setConf(conf);
-    defaultExec.setConf(conf);
-    executorMap.put(DefaultContainerExecutor.class.getName(), defaultExec);
-    executorMap.put(ValidContainerExecutor.class.getName(), validExec);
-    return new CompositeContainerExecutor(executorMap, validExec, context);
+    conf.set(YarnConfiguration.NM_CONTAINER_EXECUTOR,
+        ValidContainerExecutor.class.getName() + "," +
+            DefaultContainerExecutor.class.getName());
+    conf.set(YarnConfiguration.NM_DEFAULT_CONTAINER_EXECUTOR,
+        ValidContainerExecutor.class.getName());
+    return new CompositeContainerExecutor(conf, context);
   }
 
   public static final class ValidContainerExecutor extends DefaultContainerExecutor {
@@ -91,83 +86,27 @@ public class TestCompositeContainerExecutor extends BaseContainerManagerTest {
     }
   }
 
-  /**
-   * To make sure a single container_executor would work
-   */
   @Test
-  public void testSingleContainerExecutor() {
-    NodeManager nm = new NodeManager();
+  public void testContainerExecutorConfiguration() {
     YarnConfiguration conf = new YarnConfiguration();
+
+    //test single container executor configuration
     conf.setClass(YarnConfiguration.NM_CONTAINER_EXECUTOR,
         ValidContainerExecutor.class, ContainerExecutor.class);
-    try {
-      nm.init(conf);
-      CompositeContainerExecutor compositeExec = nm.getNMContext()
-          .getCompositeContainerExecutor();
-      Assert.assertEquals(ValidContainerExecutor.class,
-          compositeExec.defaultExec.getClass());
-      Assert.assertEquals(1, compositeExec.executorMap.size());
-      Assert.assertTrue(compositeExec.executorMap
-              .containsKey(ValidContainerExecutor.class.getName()));
-      Assert.assertEquals(ValidContainerExecutor.class.getName(),
-          compositeExec.validContainerExecutor);
+    CompositeContainerExecutor compositeExec = new CompositeContainerExecutor
+        (conf, null);
+    expectExecutors(compositeExec, ValidContainerExecutor.class.getName(),
+        ValidContainerExecutor.class, ValidContainerExecutor.class);
 
-      boolean expectFail = false;
-      try {
-        compositeExec.startLocalizer(null, null, null, null, null, null);
-      } catch (YarnRuntimeException e) {
-        Assert.assertEquals("Should never call this", e.getMessage());
-        expectFail = true;
-      }
-      Assert.assertTrue(expectFail);
-
-      expectFail = false;
-      try {
-        compositeExec
-            .launchContainer(null, null, null, null, null, null, null, null);
-      } catch (YarnRuntimeException e) {
-        expectFail = true;
-      }
-      Assert.assertTrue(expectFail);
-
-      expectFail = false;
-      try {
-        compositeExec.signalContainer(null, null, null);
-      } catch (YarnRuntimeException e) {
-        expectFail = true;
-      }
-      Assert.assertTrue(expectFail);
-
-      expectFail = false;
-      try {
-        compositeExec.isContainerProcessAlive(null, null);
-      } catch (YarnRuntimeException e) {
-        expectFail = true;
-      }
-      Assert.assertTrue(expectFail);
-
-    } catch (Exception e) {
-      fail("Should not fail");
-    } finally {
-      nm.stop();
-    }
-  }
-
-  /**
-   * Test multiple container_executor configuration
-   */
-  @Test
-  public void testMultipleContainerExecutor() {
-    NodeManager nm = new NodeManager();
-    YarnConfiguration conf = new YarnConfiguration();
+    //test multiple container executor configuration
     conf.set(YarnConfiguration.NM_CONTAINER_EXECUTOR,
         ValidContainerExecutor.class.getName() + "," +
             DefaultContainerExecutor.class.getName());
     boolean expectFail = false;
     try {
-      new NodeManager().init(conf);
+      new CompositeContainerExecutor(conf, null);
     } catch (Exception e) {
-      Assert.assertEquals(YarnRuntimeException.class, e.getClass());
+      //Do not configure NM_DEFAULT_CONTAINER_EXECUTOR, should get an exception
       Assert.assertEquals("Need to make a configuration for " +
           YarnConfiguration.NM_DEFAULT_CONTAINER_EXECUTOR + " since " +
           YarnConfiguration.NM_CONTAINER_EXECUTOR + "contains multiple " +
@@ -175,71 +114,71 @@ public class TestCompositeContainerExecutor extends BaseContainerManagerTest {
       expectFail = true;
     }
     Assert.assertTrue(expectFail);
-    conf.set(YarnConfiguration.NM_DEFAULT_CONTAINER_EXECUTOR,
-        ValidContainerExecutor.class.getName());
-    try {
-      nm.init(conf);
-      CompositeContainerExecutor compositeExec = nm.getNMContext()
-          .getCompositeContainerExecutor();
-      Assert.assertEquals(ValidContainerExecutor.class,
-          compositeExec.defaultExec.getClass());
-      Assert.assertEquals(2, compositeExec.executorMap.size());
-      Assert.assertTrue(compositeExec.executorMap
-              .containsKey(ValidContainerExecutor.class.getName()));
-      Assert.assertTrue(compositeExec.executorMap
-              .containsKey(DefaultContainerExecutor.class.getName()));
-      Assert.assertEquals(Joiner.on(",")
-              .join(ValidContainerExecutor.class.getName(),
-                  DefaultContainerExecutor.class.getName()),
-          compositeExec.validContainerExecutor);
+  }
 
-      ContainerLaunchContext launchContext = mock(ContainerLaunchContext.class);
-      ContainerId containerId = createContainerId(0);
-      Container container = mock(Container.class);
-      when(container.getContainerId()).thenReturn(containerId);
-      when(container.getLaunchContext()).thenReturn(launchContext);
-      nm.getNMContext().getContainers().put(containerId, container);
-
-      when(launchContext.getContainerExecutor())
-          .thenReturn(DefaultContainerExecutor.class.getName());
-      Assert.assertEquals(DefaultContainerExecutor.class,
-          compositeExec.getContainerExecutor(containerId).getClass());
-
-      when(launchContext.getContainerExecutor())
-          .thenReturn(ValidContainerExecutor.class.getName());
-      Assert.assertEquals(ValidContainerExecutor.class,
-          compositeExec.getContainerExecutor(containerId).getClass());
-
-      // Do not have LinuxContainerExecutor configured, should fail
-      when(launchContext.getContainerExecutor())
-          .thenReturn(LinuxContainerExecutor.class.getName());
-      expectFail = false;
-      try {
-        compositeExec.getContainerExecutor(containerId);
-      } catch (Exception e) {
-        Assert.assertEquals(YarnRuntimeException.class, e.getClass());
-        Assert.assertEquals(compositeExec.getInValidExecLog(containerId,
-            LinuxContainerExecutor.class.getName()), e.getMessage());
-        expectFail = true;
+  @SafeVarargs
+  private final void expectExecutors(CompositeContainerExecutor compositeExec,
+      String validExec, Class<? extends ContainerExecutor> defaultExec,
+      Class<? extends ContainerExecutor>... expectExecs) {
+    Assert.assertEquals(validExec, compositeExec.validContainerExecutor);
+    Assert.assertEquals(defaultExec, compositeExec.defaultExec.getClass());
+    if (expectExecs != null) {
+      Assert.assertEquals(expectExecs.length, compositeExec.execMap.size());
+      for (Class<? extends ContainerExecutor> clazz : expectExecs) {
+        Assert.assertTrue(compositeExec.execMap.containsKey(clazz.getName()));
+        Assert.assertEquals(clazz, compositeExec.execMap.get(clazz.getName()).getClass());
       }
-      Assert.assertTrue(expectFail);
-
-      ContainerId notExistContainer = createContainerId(1);
-      Assert.assertEquals(ValidContainerExecutor.class,
-          compositeExec.getContainerExecutor(notExistContainer).getClass());
-    } catch (Exception e) {
-      fail("should not fail");
-    } finally {
-      nm.stop();
     }
   }
 
-  /**
-   * To make sure a single container_executor would work
-   */
   @Test
-  public void testContainerLaunch() throws IOException, YarnException,
+  public void testWithMocks() {
+    expectExecutors(exec, Joiner.on(",")
+            .join(ValidContainerExecutor.class.getName(),
+                DefaultContainerExecutor.class.getName()),
+        ValidContainerExecutor.class, ValidContainerExecutor.class,
+        DefaultContainerExecutor.class);
+    ContainerLaunchContext launchContext = mock(ContainerLaunchContext.class);
+    ContainerId containerId = createContainerId(0);
+    Container container = mock(Container.class);
+    when(container.getContainerId()).thenReturn(containerId);
+    when(container.getLaunchContext()).thenReturn(launchContext);
+    context.getContainers().put(containerId, container);
+
+    when(launchContext.getContainerExecutor())
+        .thenReturn(DefaultContainerExecutor.class.getName());
+    Assert.assertEquals(DefaultContainerExecutor.class,
+        exec.getContainerExecutor(containerId).getClass());
+
+    when(launchContext.getContainerExecutor())
+        .thenReturn(ValidContainerExecutor.class.getName());
+    Assert.assertEquals(ValidContainerExecutor.class,
+        exec.getContainerExecutor(containerId).getClass());
+
+    // Do not have LinuxContainerExecutor configured, should fail
+    when(launchContext.getContainerExecutor())
+        .thenReturn(LinuxContainerExecutor.class.getName());
+    boolean expectFail = false;
+    try {
+      exec.getContainerExecutor(containerId);
+    } catch (Exception e) {
+      Assert.assertEquals(YarnRuntimeException.class, e.getClass());
+      Assert.assertEquals(exec.getInValidExecLog(containerId,
+          LinuxContainerExecutor.class.getName()), e.getMessage());
+      expectFail = true;
+    }
+    Assert.assertTrue(expectFail);
+
+    ContainerId notExistContainer = createContainerId(1);
+    Assert.assertEquals(ValidContainerExecutor.class,
+        exec.getContainerExecutor(notExistContainer).getClass());
+  }
+
+  @Test
+  public void testLaunchContainers() throws IOException, YarnException,
       InterruptedException {
+    ValidContainerExecutor validExec = (ValidContainerExecutor) exec.execMap
+        .get(ValidContainerExecutor.class.getName());
     containerManager.start();
     ContainerId cId = createContainerId(0);
     StartContainerRequest scRequest = createStartContainerRequest(cId,
@@ -255,7 +194,7 @@ public class TestCompositeContainerExecutor extends BaseContainerManagerTest {
     Throwable throwable = failedRequests.get(cId).deSerialize();
     Assert.assertEquals(YarnException.class, throwable.getClass());
     Assert.assertEquals(exec.getInValidExecLog(cId, LinuxContainerExecutor
-          .class.getName()), throwable.getMessage());
+        .class.getName()), throwable.getMessage());
 
     //container with ValidContainerExecutor should be launched with ValidContainerExecutor
     Assert.assertEquals(0, validExec.launchCount);
@@ -268,7 +207,7 @@ public class TestCompositeContainerExecutor extends BaseContainerManagerTest {
     Assert.assertEquals(1, validExec.launchCount);
 
     //container with DefaultContainerExecutor should be launched with DefaultContainerExecutor
-    cId = createContainerId(1);
+    cId = createContainerId(2);
     scRequest = createStartContainerRequest(cId, DefaultContainerExecutor.class);
     containerManager.startContainers(
         StartContainersRequest.newInstance(ImmutableList.of(scRequest)));
@@ -278,8 +217,7 @@ public class TestCompositeContainerExecutor extends BaseContainerManagerTest {
   }
 
   private StartContainerRequest createStartContainerRequest(ContainerId cId,
-      Class<? extends
-          ContainerExecutor> clazz) throws IOException {
+      Class<? extends ContainerExecutor> clazz) throws IOException {
     ContainerLaunchContext containerLaunchContext = recordFactory
         .newRecordInstance(ContainerLaunchContext.class);
     containerLaunchContext.setContainerExecutor(clazz.getName());

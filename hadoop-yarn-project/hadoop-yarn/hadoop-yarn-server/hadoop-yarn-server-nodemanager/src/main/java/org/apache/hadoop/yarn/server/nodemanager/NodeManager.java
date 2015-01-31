@@ -529,49 +529,8 @@ public class NodeManager extends CompositeService
     return nodeStatusUpdater;
   }
 
-  @SuppressWarnings("unchecked")
   private CompositeContainerExecutor createContainerExecutor(Configuration
       conf, Context context) {
-    String nmContainerExecutor = conf.get(YarnConfiguration
-        .NM_CONTAINER_EXECUTOR, DefaultContainerExecutor.class.getName());
-    String defaultContainerExecutor;
-    if (!nmContainerExecutor.contains(",")) {
-      defaultContainerExecutor = nmContainerExecutor;
-    } else {
-      defaultContainerExecutor = conf.get(YarnConfiguration
-          .NM_DEFAULT_CONTAINER_EXECUTOR);
-      if (defaultContainerExecutor == null) {
-        throw new YarnRuntimeException("Need to make a configuration for " +
-            YarnConfiguration.NM_DEFAULT_CONTAINER_EXECUTOR + " since " +
-            YarnConfiguration.NM_CONTAINER_EXECUTOR + "contains multiple " +
-            "values.");
-      }
-    }
-    Map<String, ContainerExecutor> execMap = new HashMap<String,
-        ContainerExecutor>();
-    Class<? extends ContainerExecutor> execClass;
-    ContainerExecutor defaultExec = null;
-    for (String containerExecutor : Splitter.on(',').omitEmptyStrings()
-        .trimResults().split(nmContainerExecutor)) {
-      try {
-        execClass = (Class<? extends ContainerExecutor>) conf
-            .getClassByName(containerExecutor);
-      } catch (ClassNotFoundException e) {
-        throw new YarnRuntimeException("Failed to find container executor " +
-            "class " + containerExecutor);
-      } catch (ClassCastException e) {
-        throw new YarnRuntimeException("Container executor class " +
-            containerExecutor + " should extend " + ContainerExecutor.class
-            .getName());
-      }
-      if (!execMap.containsKey(containerExecutor)) {
-        ContainerExecutor exec = ReflectionUtils.newInstance(execClass, conf);
-        execMap.put(containerExecutor, exec);
-        if (containerExecutor.equals(defaultContainerExecutor)) {
-          defaultExec = exec;
-        }
-      }
-    }
-    return new CompositeContainerExecutor(execMap, defaultExec, context);
+    return new CompositeContainerExecutor(conf, context);
   }
 }
