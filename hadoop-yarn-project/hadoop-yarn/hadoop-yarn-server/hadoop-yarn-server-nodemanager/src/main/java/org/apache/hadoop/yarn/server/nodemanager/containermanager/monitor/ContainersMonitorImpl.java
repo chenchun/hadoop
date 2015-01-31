@@ -35,7 +35,7 @@ import org.apache.hadoop.yarn.api.records.ContainerId;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
 import org.apache.hadoop.yarn.event.AsyncDispatcher;
 import org.apache.hadoop.yarn.event.Dispatcher;
-import org.apache.hadoop.yarn.server.nodemanager.ContainerExecutor;
+import org.apache.hadoop.yarn.server.nodemanager.CompositeContainerExecutor;
 import org.apache.hadoop.yarn.server.nodemanager.Context;
 import org.apache.hadoop.yarn.server.nodemanager.containermanager.container.ContainerKillEvent;
 import org.apache.hadoop.yarn.util.ResourceCalculatorProcessTree;
@@ -59,7 +59,7 @@ public class ContainersMonitorImpl extends AbstractService implements
   Map<ContainerId, ProcessTreeInfo> trackingContainers =
       new HashMap<ContainerId, ProcessTreeInfo>();
 
-  final ContainerExecutor containerExecutor;
+  final CompositeContainerExecutor containerExecutor;
   private final Dispatcher eventDispatcher;
   private final Context context;
   private ResourceCalculatorPlugin resourceCalculatorPlugin;
@@ -76,7 +76,7 @@ public class ContainersMonitorImpl extends AbstractService implements
 
   private static final long UNKNOWN_MEMORY_LIMIT = -1L;
 
-  public ContainersMonitorImpl(ContainerExecutor exec,
+  public ContainersMonitorImpl(CompositeContainerExecutor exec,
       AsyncDispatcher dispatcher, Context context) {
     super("containers-monitor");
 
@@ -386,7 +386,8 @@ public class ContainersMonitorImpl extends AbstractService implements
             // Initialize any uninitialized processTrees
             if (pId == null) {
               // get pid from ContainerId
-              pId = containerExecutor.getProcessId(ptInfo.getContainerId());
+              pId = containerExecutor.getContainerExecutor(ptInfo.getContainerId())
+                  .getProcessId(ptInfo.getContainerId());
               if (pId != null) {
                 // pId will be null, either if the container is not spawned yet
                 // or if the container's pid is removed from ContainerExecutor

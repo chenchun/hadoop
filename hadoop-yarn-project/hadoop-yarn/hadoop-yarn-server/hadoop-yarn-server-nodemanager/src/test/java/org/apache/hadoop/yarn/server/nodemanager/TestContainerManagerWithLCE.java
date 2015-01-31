@@ -195,12 +195,12 @@ public class TestContainerManagerWithLCE extends TestContainerManager {
   }
 
   @Override
-  protected ContainerExecutor createContainerExecutor() {
+  protected CompositeContainerExecutor createContainerExecutor() {
     super.conf.set(YarnConfiguration.NM_LINUX_CONTAINER_EXECUTOR_PATH, System
         .getProperty(YarnConfiguration.NM_LINUX_CONTAINER_EXECUTOR_PATH));
     LinuxContainerExecutor linuxContainerExecutor =
         new LinuxContainerExecutor();
     linuxContainerExecutor.setConf(super.conf);
-    return linuxContainerExecutor;
+    return new CompositeContainerExecutor(linuxContainerExecutor);
   }
 }

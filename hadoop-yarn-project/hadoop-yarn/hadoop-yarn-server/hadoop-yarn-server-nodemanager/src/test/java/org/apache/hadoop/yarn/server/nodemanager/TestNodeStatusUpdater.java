@@ -1077,7 +1077,7 @@ public class TestNodeStatusUpdater {
 
       @Override
       protected ContainerManagerImpl createContainerManager(Context context,
-          ContainerExecutor exec, DeletionService del,
+          CompositeContainerExecutor exec, DeletionService del,
           NodeStatusUpdater nodeStatusUpdater,
           ApplicationACLsManager aclsManager,
           LocalDirsHandlerService dirsHandler) {
@@ -1290,7 +1290,7 @@ public class TestNodeStatusUpdater {
 
       @Override
       protected ContainerManagerImpl createContainerManager(Context context,
-          ContainerExecutor exec, DeletionService del,
+          CompositeContainerExecutor exec, DeletionService del,
           NodeStatusUpdater nodeStatusUpdater,
           ApplicationACLsManager aclsManager,
           LocalDirsHandlerService diskhandler) {
@@ -1440,7 +1440,7 @@ public class TestNodeStatusUpdater {
 
       @Override
       protected ContainerManagerImpl createContainerManager(Context context,
-          ContainerExecutor exec, DeletionService del,
+          CompositeContainerExecutor exec, DeletionService del,
           NodeStatusUpdater nodeStatusUpdater,
           ApplicationACLsManager aclsManager,
           LocalDirsHandlerService dirsHandler) {

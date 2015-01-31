@@ -18,13 +18,8 @@
 package org.apache.hadoop.yarn.api.records.impl.pb;
 
 
-import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
+import com.google.protobuf.ByteString;
+import com.google.protobuf.TextFormat;
 import org.apache.hadoop.classification.InterfaceAudience.Private;
 import org.apache.hadoop.classification.InterfaceStability.Unstable;
 import org.apache.hadoop.yarn.api.records.ApplicationAccessType;
@@ -38,8 +33,12 @@ import org.apache.hadoop.yarn.proto.YarnProtos.StringBytesMapProto;
 import org.apache.hadoop.yarn.proto.YarnProtos.StringLocalResourceMapProto;
 import org.apache.hadoop.yarn.proto.YarnProtos.StringStringMapProto;
 
-import com.google.protobuf.ByteString;
-import com.google.protobuf.TextFormat;
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 @Private
 @Unstable
@@ -56,7 +55,7 @@ extends ContainerLaunchContext {
   private Map<String, String> environment = null;
   private List<String> commands = null;
   private Map<ApplicationAccessType, String> applicationACLS = null;
-  
+
   public ContainerLaunchContextPBImpl() {
     builder = ContainerLaunchContextProto.newBuilder();
   }
@@ -456,6 +455,26 @@ extends ContainerLaunchContext {
     this.applicationACLS.putAll(appACLs);
   }
 
+  @Override
+  public String getContainerExecutor() {
+    ContainerLaunchContextProtoOrBuilder p = viaProto ? proto : builder;
+    if (!p.hasContainerExecutor()) {
+      return null;
+    }
+    return p.getContainerExecutor();
+  }
+
+  @Override
+  public void setContainerExecutor(String containerExecutor) {
+    maybeInitBuilder();
+    if (containerExecutor == null) {
+      builder.clearContainerExecutor();
+      return;
+    }
+    builder.setContainerExecutor(containerExecutor);
+  }
+
+
   private LocalResourcePBImpl convertFromProtoFormat(LocalResourceProto p) {
     return new LocalResourcePBImpl(p);
   }
@@ -463,4 +482,4 @@ extends ContainerLaunchContext {
   private LocalResourceProto convertToProtoFormat(LocalResource t) {
     return ((LocalResourcePBImpl)t).getProto();
   }
-}  
+}

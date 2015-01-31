@@ -35,6 +35,7 @@ import org.apache.hadoop.yarn.api.records.ContainerId;
 import org.apache.hadoop.yarn.event.Dispatcher;
 import org.apache.hadoop.yarn.event.EventHandler;
 import org.apache.hadoop.yarn.exceptions.YarnRuntimeException;
+import org.apache.hadoop.yarn.server.nodemanager.CompositeContainerExecutor;
 import org.apache.hadoop.yarn.server.nodemanager.ContainerExecutor;
 import org.apache.hadoop.yarn.server.nodemanager.Context;
 import org.apache.hadoop.yarn.server.nodemanager.LocalDirsHandlerService;
@@ -58,7 +59,7 @@ public class ContainersLauncher extends AbstractService
   private static final Log LOG = LogFactory.getLog(ContainersLauncher.class);
 
   private final Context context;
-  private final ContainerExecutor exec;
+  private final CompositeContainerExecutor exec;
   private final Dispatcher dispatcher;
   private final ContainerManagerImpl containerManager;
 
@@ -74,7 +75,7 @@ public class ContainersLauncher extends AbstractService
     Collections.synchronizedMap(new HashMap<ContainerId, ContainerLaunch>());
 
   public ContainersLauncher(Context context, Dispatcher dispatcher,
-      ContainerExecutor exec, LocalDirsHandlerService dirsHandler,
+      CompositeContainerExecutor exec, LocalDirsHandlerService dirsHandler,
       ContainerManagerImpl containerManager) {
     super("containers-launcher");
     this.exec = exec;
@@ -113,8 +114,9 @@ public class ContainersLauncher extends AbstractService
               containerId.getApplicationAttemptId().getApplicationId());
 
         ContainerLaunch launch =
-            new ContainerLaunch(context, getConfig(), dispatcher, exec, app,
-              event.getContainer(), dirsHandler, containerManager);
+            new ContainerLaunch(context, getConfig(), dispatcher, exec
+                .getContainerExecutor(containerId), app, event.getContainer()
+                , dirsHandler, containerManager);
         containerLauncher.submit(launch);
         running.put(containerId, launch);
         break;
@@ -122,7 +124,8 @@ public class ContainersLauncher extends AbstractService
         app = context.getApplications().get(
             containerId.getApplicationAttemptId().getApplicationId());
         launch = new RecoveredContainerLaunch(context, getConfig(), dispatcher,
-            exec, app, event.getContainer(), dirsHandler, containerManager);
+            exec.getContainerExecutor(containerId), app, event.getContainer(),
+            dirsHandler, containerManager);
         containerLauncher.submit(launch);
         running.put(containerId, launch);
         break;

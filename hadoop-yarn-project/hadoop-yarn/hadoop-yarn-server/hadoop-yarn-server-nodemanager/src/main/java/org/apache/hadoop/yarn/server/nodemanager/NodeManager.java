@@ -26,6 +26,7 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import com.google.common.base.Splitter;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.classification.InterfaceAudience.Private;
@@ -104,7 +105,7 @@ public class NodeManager extends CompositeService
   }
 
   protected ContainerManagerImpl createContainerManager(Context context,
-      ContainerExecutor exec, DeletionService del,
+      CompositeContainerExecutor exec, DeletionService del,
       NodeStatusUpdater nodeStatusUpdater, ApplicationACLsManager aclsManager,
       LocalDirsHandlerService dirsHandler) {
     return new ContainerManagerImpl(context, exec, del, nodeStatusUpdater,
@@ -202,14 +203,18 @@ public class NodeManager extends CompositeService
     
     this.aclsManager = new ApplicationACLsManager(conf);
 
-    ContainerExecutor exec = ReflectionUtils.newInstance(
-        conf.getClass(YarnConfiguration.NM_CONTAINER_EXECUTOR,
-          DefaultContainerExecutor.class, ContainerExecutor.class), conf);
+    this.context = createNMContext(containerTokenSecretManager,
+        nmTokenSecretManager, nmStore);
+
+    CompositeContainerExecutor exec = createContainerExecutor(conf, context);
     try {
       exec.init();
     } catch (IOException e) {
-      throw new YarnRuntimeException("Failed to initialize container executor", e);
-    }    
+      throw new YarnRuntimeException("Failed to initialize container " +
+          "executor", e);
+    }
+    ((NMContext) context).setCompositeContainerExecutor(exec);
+
     DeletionService del = createDeletionService(exec);
     addService(del);
 
@@ -220,9 +225,6 @@ public class NodeManager extends CompositeService
     addService(nodeHealthChecker);
     dirsHandler = nodeHealthChecker.getDiskHandler();
 
-    this.context = createNMContext(containerTokenSecretManager,
-        nmTokenSecretManager, nmStore);
-    
     nodeStatusUpdater =
         createNodeStatusUpdater(context, dispatcher, nodeHealthChecker);
 
@@ -333,6 +335,7 @@ public class NodeManager extends CompositeService
         .getRecordFactory(null).newRecordInstance(NodeHealthStatus.class);
     private final NMStateStoreService stateStore;
     private boolean isDecommissioned = false;
+    private CompositeContainerExecutor compositeContainerExecutor;
 
     public NMContext(NMContainerTokenSecretManager containerTokenSecretManager,
         NMTokenSecretManagerInNM nmTokenSecretManager,
@@ -351,6 +354,7 @@ public class NodeManager extends CompositeService
     /**
      * Usable only after ContainerManager is started.
      */
+
     @Override
     public NodeId getNodeId() {
       return this.nodeId;
@@ -426,6 +430,16 @@ public class NodeManager extends CompositeService
     @Override
     public void setDecommissioned(boolean isDecommissioned) {
       this.isDecommissioned = isDecommissioned;
+    }
+
+    @Override
+    public CompositeContainerExecutor getCompositeContainerExecutor() {
+      return compositeContainerExecutor;
+    }
+
+    public void setCompositeContainerExecutor(
+        CompositeContainerExecutor compositeContainerExecutor) {
+      this.compositeContainerExecutor = compositeContainerExecutor;
     }
 
     @Override
@@ -513,5 +527,51 @@ public class NodeManager extends CompositeService
   @Private
   public NodeStatusUpdater getNodeStatusUpdater() {
     return nodeStatusUpdater;
+  }
+
+  @SuppressWarnings("unchecked")
+  private CompositeContainerExecutor createContainerExecutor(Configuration
+      conf, Context context) {
+    String nmContainerExecutor = conf.get(YarnConfiguration
+        .NM_CONTAINER_EXECUTOR, DefaultContainerExecutor.class.getName());
+    String defaultContainerExecutor;
+    if (!nmContainerExecutor.contains(",")) {
+      defaultContainerExecutor = nmContainerExecutor;
+    } else {
+      defaultContainerExecutor = conf.get(YarnConfiguration
+          .NM_DEFAULT_CONTAINER_EXECUTOR);
+      if (defaultContainerExecutor == null) {
+        throw new YarnRuntimeException("Need to make a configuration for " +
+            YarnConfiguration.NM_DEFAULT_CONTAINER_EXECUTOR + " since " +
+            YarnConfiguration.NM_CONTAINER_EXECUTOR + "contains multiple " +
+            "values.");
+      }
+    }
+    Map<String, ContainerExecutor> execMap = new HashMap<String,
+        ContainerExecutor>();
+    Class<? extends ContainerExecutor> execClass;
+    ContainerExecutor defaultExec = null;
+    for (String containerExecutor : Splitter.on(',').omitEmptyStrings()
+        .trimResults().split(nmContainerExecutor)) {
+      try {
+        execClass = (Class<? extends ContainerExecutor>) conf
+            .getClassByName(containerExecutor);
+      } catch (ClassNotFoundException e) {
+        throw new YarnRuntimeException("Failed to find container executor " +
+            "class " + containerExecutor);
+      } catch (ClassCastException e) {
+        throw new YarnRuntimeException("Container executor class " +
+            containerExecutor + " should extend " + ContainerExecutor.class
+            .getName());
+      }
+      if (!execMap.containsKey(containerExecutor)) {
+        ContainerExecutor exec = ReflectionUtils.newInstance(execClass, conf);
+        execMap.put(containerExecutor, exec);
+        if (containerExecutor.equals(defaultContainerExecutor)) {
+          defaultExec = exec;
+        }
+      }
+    }
+    return new CompositeContainerExecutor(execMap, defaultExec, context);
   }
 }

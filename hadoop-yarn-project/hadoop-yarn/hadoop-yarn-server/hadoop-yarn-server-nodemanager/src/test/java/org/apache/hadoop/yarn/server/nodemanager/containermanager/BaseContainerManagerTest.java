@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.hadoop.yarn.server.nodemanager.CompositeContainerExecutor;
 import org.junit.Assert;
 
 import org.apache.commons.logging.Log;
@@ -110,7 +111,7 @@ public abstract class BaseContainerManagerTest {
       return HTTP_PORT;
     };
   };
-  protected ContainerExecutor exec;
+  protected CompositeContainerExecutor exec;
   protected DeletionService delSrvc;
   protected String user = "nobody";
   protected NodeHealthCheckerService nodeHealthChecker;
@@ -143,10 +144,10 @@ public abstract class BaseContainerManagerTest {
 
   protected ContainerManagerImpl containerManager = null;
 
-  protected ContainerExecutor createContainerExecutor() {
+  protected CompositeContainerExecutor createContainerExecutor() {
     DefaultContainerExecutor exec = new DefaultContainerExecutor();
     exec.setConf(conf);
-    return exec;
+    return new CompositeContainerExecutor(exec);
   }
 
   @Before

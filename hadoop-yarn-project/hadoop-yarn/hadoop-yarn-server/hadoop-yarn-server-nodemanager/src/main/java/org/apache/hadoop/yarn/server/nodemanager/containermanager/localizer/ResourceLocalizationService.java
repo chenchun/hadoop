@@ -86,6 +86,7 @@ import org.apache.hadoop.yarn.factory.providers.RecordFactoryProvider;
 import org.apache.hadoop.yarn.ipc.YarnRPC;
 import org.apache.hadoop.yarn.proto.YarnProtos.LocalResourceProto;
 import org.apache.hadoop.yarn.proto.YarnServerNodemanagerRecoveryProtos.LocalizedResourceProto;
+import org.apache.hadoop.yarn.server.nodemanager.CompositeContainerExecutor;
 import org.apache.hadoop.yarn.server.nodemanager.ContainerExecutor;
 import org.apache.hadoop.yarn.server.nodemanager.Context;
 import org.apache.hadoop.yarn.server.nodemanager.DeletionService;
@@ -146,7 +147,7 @@ public class ResourceLocalizationService extends CompositeService
   private long cacheTargetSize;
   private long cacheCleanupPeriod;
 
-  private final ContainerExecutor exec;
+  private final CompositeContainerExecutor exec;
   protected final Dispatcher dispatcher;
   private final DeletionService delService;
   private LocalizerTracker localizerTracker;
@@ -177,7 +178,7 @@ public class ResourceLocalizationService extends CompositeService
   FileContext lfs;
 
   public ResourceLocalizationService(Dispatcher dispatcher,
-      ContainerExecutor exec, DeletionService delService,
+      CompositeContainerExecutor exec, DeletionService delService,
       LocalDirsHandlerService dirsHandler, Context context) {
 
     super(ResourceLocalizationService.class.getName());
@@ -1078,13 +1079,12 @@ public class ResourceLocalizationService extends CompositeService
         List<String> localDirs = getInitializedLocalDirs();
         List<String> logDirs = getInitializedLogDirs();
         if (dirsHandler.areDisksHealthy()) {
-          exec.startLocalizer(nmPrivateCTokensPath, localizationServerAddress,
-              context.getUser(),
-              ConverterUtils.toString(
-                  context.getContainerId().
-                  getApplicationAttemptId().getApplicationId()),
-              localizerId,
-              dirsHandler);
+          exec.getContainerExecutor(context.getContainerId())
+              .startLocalizer(nmPrivateCTokensPath, localizationServerAddress,
+                  context.getUser(),
+                  ConverterUtils.toString(context.getContainerId().
+                      getApplicationAttemptId().getApplicationId()),
+                  localizerId, dirsHandler);
         } else {
           throw new IOException("All disks failed. "
               + dirsHandler.getDisksHealthReport(false));

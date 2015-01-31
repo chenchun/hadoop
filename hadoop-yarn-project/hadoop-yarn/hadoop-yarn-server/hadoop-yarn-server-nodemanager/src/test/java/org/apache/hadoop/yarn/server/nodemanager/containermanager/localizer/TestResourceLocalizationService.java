@@ -97,7 +97,9 @@ import org.apache.hadoop.yarn.event.Dispatcher;
 import org.apache.hadoop.yarn.event.DrainDispatcher;
 import org.apache.hadoop.yarn.event.EventHandler;
 import org.apache.hadoop.yarn.exceptions.YarnException;
+import org.apache.hadoop.yarn.server.nodemanager.CompositeContainerExecutor;
 import org.apache.hadoop.yarn.server.nodemanager.ContainerExecutor;
+import org.apache.hadoop.yarn.server.nodemanager.Context;
 import org.apache.hadoop.yarn.server.nodemanager.DeletionService;
 import org.apache.hadoop.yarn.server.nodemanager.LocalDirsHandlerService;
 import org.apache.hadoop.yarn.server.nodemanager.NodeManager.NMContext;
@@ -207,7 +209,7 @@ public class TestResourceLocalizationService {
     diskhandler.init(conf);
 
     ResourceLocalizationService locService =
-      spy(new ResourceLocalizationService(dispatcher, exec, delService,
+      spy(createResourceLocalizationService(dispatcher, exec, delService,
                                           diskhandler, nmContext));
     doReturn(lfs)
       .when(locService).getLocalFileContext(isA(Configuration.class));
@@ -268,7 +270,7 @@ public class TestResourceLocalizationService {
     when(nmStateStoreService.isNewlyCreated()).thenReturn(true);
 
     ResourceLocalizationService locService =
-        spy(new ResourceLocalizationService(dispatcher, exec, delService,
+        spy(createResourceLocalizationService(dispatcher, exec, delService,
             diskhandler,nmContext));
     doReturn(lfs)
         .when(locService).getLocalFileContext(isA(Configuration.class));
@@ -339,7 +341,7 @@ public class TestResourceLocalizationService {
     delService.start();
 
     ResourceLocalizationService rawService =
-      new ResourceLocalizationService(dispatcher, exec, delService,
+        createResourceLocalizationService(dispatcher, exec, delService,
                                       dirsHandler, nmContext);
     ResourceLocalizationService spyService = spy(rawService);
     doReturn(mockServer).when(spyService).createServer();
@@ -749,7 +751,7 @@ public class TestResourceLocalizationService {
     delService.start();
 
     ResourceLocalizationService rawService =
-      new ResourceLocalizationService(dispatcher, exec, delService,
+        createResourceLocalizationService(dispatcher, exec, delService,
                                       dirsHandler, nmContext);
     ResourceLocalizationService spyService = spy(rawService);
     doReturn(mockServer).when(spyService).createServer();
@@ -1000,7 +1002,7 @@ public class TestResourceLocalizationService {
 
     try {
       ResourceLocalizationService rawService =
-          new ResourceLocalizationService(dispatcher, exec, delService,
+          createResourceLocalizationService(dispatcher, exec, delService,
               dirsHandler, spyContext);
       ResourceLocalizationService spyService = spy(rawService);
       doReturn(mockServer).when(spyService).createServer();
@@ -1094,7 +1096,7 @@ public class TestResourceLocalizationService {
 
     try {
       ResourceLocalizationService rawService =
-          new ResourceLocalizationService(dispatcher, exec, delService,
+          createResourceLocalizationService(dispatcher, exec, delService,
                                         dirsHandler, nmContext);
       ResourceLocalizationService spyService = spy(rawService);
       doReturn(mockServer).when(spyService).createServer();
@@ -1203,7 +1205,7 @@ public class TestResourceLocalizationService {
 
     try {
       ResourceLocalizationService rawService =
-          new ResourceLocalizationService(dispatcher, exec, delService,
+          createResourceLocalizationService(dispatcher, exec, delService,
             dirsHandlerSpy, nmContext);
       ResourceLocalizationService spyService = spy(rawService);
       doReturn(mockServer).when(spyService).createServer();
@@ -1335,7 +1337,7 @@ public class TestResourceLocalizationService {
       dispatcher1.start();
 
       ResourceLocalizationService rls =
-          new ResourceLocalizationService(dispatcher1, exec, delService,
+          createResourceLocalizationService(dispatcher1, exec, delService,
             localDirHandler, nmContext);
       dispatcher1.register(LocalizationEventType.class, rls);
       rls.init(conf);
@@ -1488,7 +1490,7 @@ public class TestResourceLocalizationService {
       dispatcher1.start();
 
       ResourceLocalizationService rls =
-          new ResourceLocalizationService(dispatcher1, exec, delService,
+          createResourceLocalizationService(dispatcher1, exec, delService,
             localDirHandler, nmContext);
       dispatcher1.register(LocalizationEventType.class, rls);
       rls.init(conf);
@@ -1654,7 +1656,7 @@ public class TestResourceLocalizationService {
       // Creating and initializing ResourceLocalizationService but not starting
       // it as otherwise it will remove requests from pending queue.
       ResourceLocalizationService rawService =
-          new ResourceLocalizationService(dispatcher1, exec, delService,
+          createResourceLocalizationService(dispatcher1, exec, delService,
             dirsHandler, nmContext);
       ResourceLocalizationService spyService = spy(rawService);
       dispatcher1.register(LocalizationEventType.class, spyService);
@@ -1948,7 +1950,7 @@ public class TestResourceLocalizationService {
           new NMTokenSecretManagerInNM(), null,
           new ApplicationACLsManager(conf), stateStore);
     ResourceLocalizationService rawService =
-      new ResourceLocalizationService(dispatcher, exec, delService,
+        createResourceLocalizationService(dispatcher, exec, delService,
                                       dirsHandler, nmContext);
     ResourceLocalizationService spyService = spy(rawService);
     doReturn(mockServer).when(spyService).createServer();
@@ -2012,7 +2014,7 @@ public class TestResourceLocalizationService {
 
     // setup mocks
     ResourceLocalizationService rawService =
-        new ResourceLocalizationService(dispatcher, exec, delService,
+        createResourceLocalizationService(dispatcher, exec, delService,
           mockDirsHandler, nmContext);
     ResourceLocalizationService spyService = spy(rawService);
     doReturn(mockServer).when(spyService).createServer();
@@ -2232,6 +2234,13 @@ public class TestResourceLocalizationService {
       dispatcher.stop();
       delService.stop();
     }
+  }
+
+  public ResourceLocalizationService createResourceLocalizationService
+      (Dispatcher dispatcher, ContainerExecutor exec, DeletionService
+          delService, LocalDirsHandlerService dirsHandler, Context context) {
+    return new ResourceLocalizationService(dispatcher,
+        new CompositeContainerExecutor(exec), delService, dirsHandler, context);
   }
 
 }

@@ -431,7 +431,7 @@ public class TestNodeManagerResync {
 
     @Override
     protected ContainerManagerImpl createContainerManager(Context context,
-        ContainerExecutor exec, DeletionService del,
+        CompositeContainerExecutor exec, DeletionService del,
         NodeStatusUpdater nodeStatusUpdater, ApplicationACLsManager aclsManager,
         LocalDirsHandlerService dirsHandler) {
       return new ContainerManagerImpl(context, exec, del, nodeStatusUpdater,

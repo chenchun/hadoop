@@ -51,6 +51,7 @@ import org.apache.hadoop.yarn.security.NMTokenIdentifier;
 import org.apache.hadoop.yarn.server.api.records.MasterKey;
 import org.apache.hadoop.yarn.server.api.records.impl.pb.MasterKeyPBImpl;
 import org.apache.hadoop.yarn.server.nodemanager.CMgrCompletedAppsEvent;
+import org.apache.hadoop.yarn.server.nodemanager.CompositeContainerExecutor;
 import org.apache.hadoop.yarn.server.nodemanager.ContainerExecutor;
 import org.apache.hadoop.yarn.server.nodemanager.Context;
 import org.apache.hadoop.yarn.server.nodemanager.DeletionService;
@@ -308,8 +309,8 @@ public class TestContainerManagerRecovery {
     };
 
     return new ContainerManagerImpl(context,
-        mock(ContainerExecutor.class), mock(DeletionService.class),
-        mock(NodeStatusUpdater.class), metrics,
+        new CompositeContainerExecutor(mock(ContainerExecutor.class)),
+        mock(DeletionService.class), mock(NodeStatusUpdater.class), metrics,
         context.getApplicationACLsManager(), null) {
           @Override
           protected LogHandler createLogHandler(Configuration conf,
@@ -319,13 +320,14 @@ public class TestContainerManagerRecovery {
 
           @Override
           protected ResourceLocalizationService createResourceLocalizationService(
-              ContainerExecutor exec, DeletionService deletionContext, Context context) {
+              CompositeContainerExecutor exec, DeletionService
+              deletionContext, Context context) {
             return rsrcSrv;
           }
 
           @Override
           protected ContainersLauncher createContainersLauncher(
-              Context context, ContainerExecutor exec) {
+              Context context, CompositeContainerExecutor exec) {
             return launcher;
           }
 

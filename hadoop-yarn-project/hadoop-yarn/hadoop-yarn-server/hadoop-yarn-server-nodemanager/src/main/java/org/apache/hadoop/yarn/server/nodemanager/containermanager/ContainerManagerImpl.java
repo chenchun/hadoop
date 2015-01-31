@@ -94,6 +94,7 @@ import org.apache.hadoop.yarn.security.ContainerTokenIdentifier;
 import org.apache.hadoop.yarn.security.NMTokenIdentifier;
 import org.apache.hadoop.yarn.server.nodemanager.CMgrCompletedAppsEvent;
 import org.apache.hadoop.yarn.server.nodemanager.CMgrCompletedContainersEvent;
+import org.apache.hadoop.yarn.server.nodemanager.CompositeContainerExecutor;
 import org.apache.hadoop.yarn.server.nodemanager.ContainerExecutor;
 import org.apache.hadoop.yarn.server.nodemanager.ContainerManagerEvent;
 import org.apache.hadoop.yarn.server.nodemanager.Context;
@@ -174,7 +175,7 @@ public class ContainerManagerImpl extends CompositeService implements
 
   private long waitForContainersOnShutdownMillis;
 
-  public ContainerManagerImpl(Context context, ContainerExecutor exec,
+  public ContainerManagerImpl(Context context, CompositeContainerExecutor exec,
       DeletionService deletionContext, NodeStatusUpdater nodeStatusUpdater,
       NodeManagerMetrics metrics, ApplicationACLsManager aclsManager,
       LocalDirsHandlerService dirsHandler) {
@@ -371,7 +372,8 @@ public class ContainerManagerImpl extends CompositeService implements
   }
 
   protected ResourceLocalizationService createResourceLocalizationService(
-      ContainerExecutor exec, DeletionService deletionContext, Context context) {
+      CompositeContainerExecutor exec, DeletionService deletionContext,
+      Context context) {
     return new ResourceLocalizationService(this.dispatcher, exec,
         deletionContext, dirsHandler, context);
   }
@@ -381,7 +383,7 @@ public class ContainerManagerImpl extends CompositeService implements
   }
 
   protected ContainersLauncher createContainersLauncher(Context context,
-      ContainerExecutor exec) {
+      CompositeContainerExecutor exec) {
     return new ContainersLauncher(context, this.dispatcher, exec, dirsHandler, this);
   }
 
@@ -816,6 +818,14 @@ public class ContainerManagerImpl extends CompositeService implements
     LOG.info("Start request for " + containerIdStr + " by user " + user);
 
     ContainerLaunchContext launchContext = request.getContainerLaunchContext();
+    if (context.getCompositeContainerExecutor() != null && !context
+        .getCompositeContainerExecutor().isValidContainerExecutor(
+            (launchContext.getContainerExecutor()))) {
+      String errorMsg = context.getCompositeContainerExecutor()
+          .getInValidExecLog(containerId, launchContext.getContainerExecutor());
+      LOG.error(errorMsg);
+      throw new YarnException(errorMsg);
+    }
 
     Map<String, ByteBuffer> serviceData = getAuxServiceMetaData();
     if (launchContext.getServiceData()!=null && 

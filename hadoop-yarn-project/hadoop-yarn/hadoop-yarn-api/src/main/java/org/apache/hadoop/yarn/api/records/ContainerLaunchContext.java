@@ -61,7 +61,7 @@ public abstract class ContainerLaunchContext {
       Map<String, LocalResource> localResources,
       Map<String, String> environment, List<String> commands,
       Map<String, ByteBuffer> serviceData,  ByteBuffer tokens,
-      Map<ApplicationAccessType, String> acls) {
+      Map<ApplicationAccessType, String> acls, String containerExecutor) {
     ContainerLaunchContext container =
         Records.newRecord(ContainerLaunchContext.class);
     container.setLocalResources(localResources);
@@ -70,7 +70,19 @@ public abstract class ContainerLaunchContext {
     container.setServiceData(serviceData);
     container.setTokens(tokens);
     container.setApplicationACLs(acls);
+    container.setContainerExecutor(containerExecutor);
     return container;
+  }
+
+  @Public
+  @Stable
+  public static ContainerLaunchContext newInstance(
+      Map<String, LocalResource> localResources,
+      Map<String, String> environment, List<String> commands,
+      Map<String, ByteBuffer> serviceData,  ByteBuffer tokens,
+      Map<ApplicationAccessType, String> acls) {
+    return newInstance(localResources, environment, commands, serviceData,
+        tokens, acls, null);
   }
 
   /**
@@ -196,4 +208,20 @@ public abstract class ContainerLaunchContext {
   @Public
   @Stable
   public abstract  void setApplicationACLs(Map<ApplicationAccessType, String> acls);
+
+  /**
+   * Get the <code>ContainType</code> of the container.
+   * @return container type of the container
+   */
+  @Public
+  @Stable
+  public abstract String getContainerExecutor();
+
+  /**
+   * Set the <code>ContainType</code> of the container.
+   * @param containerExecutor container type for the container.
+   */
+  @Public
+  @Stable
+  public abstract void setContainerExecutor(String containerExecutor);
 }

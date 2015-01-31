@@ -606,9 +606,20 @@ public class YarnConfiguration extends Configuration {
   public static final String NM_BIND_HOST =
     NM_PREFIX + "bind-host";
 
-  /** who will execute(launch) the containers.*/
+  /**
+   * A comma separated list of container executor class who can execute
+   * (launch) the containers.
+   */
   public static final String NM_CONTAINER_EXECUTOR = 
     NM_PREFIX + "container-executor.class";
+
+  /**
+   * The default container executor to execute(launch) the containers when
+   * submit containers without specify which container executor to execute
+   * the containers.
+   */
+  public static final String NM_DEFAULT_CONTAINER_EXECUTOR =
+      NM_PREFIX + "default.container-executor.class";
 
   /**  
    * Adjustment to make to the container os scheduling priority.

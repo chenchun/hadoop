@@ -59,6 +59,7 @@ import org.apache.hadoop.yarn.conf.YarnConfiguration;
 import org.apache.hadoop.yarn.event.AsyncDispatcher;
 import org.apache.hadoop.yarn.exceptions.YarnException;
 import org.apache.hadoop.yarn.security.ContainerTokenIdentifier;
+import org.apache.hadoop.yarn.server.nodemanager.CompositeContainerExecutor;
 import org.apache.hadoop.yarn.server.nodemanager.ContainerExecutor;
 import org.apache.hadoop.yarn.server.nodemanager.ContainerExecutor.Signal;
 import org.apache.hadoop.yarn.server.nodemanager.Context;
@@ -299,7 +300,8 @@ public class TestContainersMonitor extends BaseContainerManagerTest {
     long expPmem = 8192 * 1024 * 1024l;
     long expVmem = (long) (expPmem * 2.1f);
 
-    cm = new ContainersMonitorImpl(mock(ContainerExecutor.class),
+    cm = new ContainersMonitorImpl(
+        new CompositeContainerExecutor(mock(ContainerExecutor.class)),
         mock(AsyncDispatcher.class), mock(Context.class));
     cm.init(getConfForCM(false, false, 8192, 2.1f));
     assertEquals(expPmem, cm.getPmemAllocatedForContainers());
@@ -307,7 +309,8 @@ public class TestContainersMonitor extends BaseContainerManagerTest {
     assertEquals(false, cm.isPmemCheckEnabled());
     assertEquals(false, cm.isVmemCheckEnabled());
 
-    cm = new ContainersMonitorImpl(mock(ContainerExecutor.class),
+    cm = new ContainersMonitorImpl(
+        new CompositeContainerExecutor(mock(ContainerExecutor.class)),
         mock(AsyncDispatcher.class), mock(Context.class));
     cm.init(getConfForCM(true, false, 8192, 2.1f));
     assertEquals(expPmem, cm.getPmemAllocatedForContainers());
@@ -315,7 +318,8 @@ public class TestContainersMonitor extends BaseContainerManagerTest {
     assertEquals(true, cm.isPmemCheckEnabled());
     assertEquals(false, cm.isVmemCheckEnabled());
 
-    cm = new ContainersMonitorImpl(mock(ContainerExecutor.class),
+    cm = new ContainersMonitorImpl(
+        new CompositeContainerExecutor(mock(ContainerExecutor.class)),
         mock(AsyncDispatcher.class), mock(Context.class));
     cm.init(getConfForCM(true, true, 8192, 2.1f));
     assertEquals(expPmem, cm.getPmemAllocatedForContainers());
@@ -323,7 +327,8 @@ public class TestContainersMonitor extends BaseContainerManagerTest {
     assertEquals(true, cm.isPmemCheckEnabled());
     assertEquals(true, cm.isVmemCheckEnabled());
 
-    cm = new ContainersMonitorImpl(mock(ContainerExecutor.class),
+    cm = new ContainersMonitorImpl(
+        new CompositeContainerExecutor(mock(ContainerExecutor.class)),
         mock(AsyncDispatcher.class), mock(Context.class));
     cm.init(getConfForCM(false, true, 8192, 2.1f));
     assertEquals(expPmem, cm.getPmemAllocatedForContainers());

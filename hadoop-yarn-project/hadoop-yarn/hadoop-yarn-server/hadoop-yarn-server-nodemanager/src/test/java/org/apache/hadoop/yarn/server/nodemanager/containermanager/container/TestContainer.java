@@ -66,6 +66,7 @@ import org.apache.hadoop.yarn.conf.YarnConfiguration;
 import org.apache.hadoop.yarn.event.DrainDispatcher;
 import org.apache.hadoop.yarn.event.EventHandler;
 import org.apache.hadoop.yarn.security.ContainerTokenIdentifier;
+import org.apache.hadoop.yarn.server.nodemanager.CompositeContainerExecutor;
 import org.apache.hadoop.yarn.server.nodemanager.ContainerExecutor;
 import org.apache.hadoop.yarn.server.nodemanager.ContainerExecutor.ExitCode;
 import org.apache.hadoop.yarn.server.nodemanager.Context;
@@ -754,7 +755,8 @@ public class TestContainer {
       when(context.getNMStateStore()).thenReturn(stateStore);
       ContainerExecutor executor = mock(ContainerExecutor.class);
       launcher =
-          new ContainersLauncher(context, dispatcher, executor, null, null);
+          new ContainersLauncher(context, dispatcher, new
+              CompositeContainerExecutor(executor), null, null);
       // create a mock ExecutorService, which will not really launch
       // ContainerLaunch at all.
       launcher.containerLauncher = mock(ExecutorService.class);

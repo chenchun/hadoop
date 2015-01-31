@@ -66,14 +66,16 @@ public class DummyContainerManager extends ContainerManagerImpl {
       NodeManagerMetrics metrics,
       ApplicationACLsManager applicationACLsManager,
       LocalDirsHandlerService dirsHandler) {
-    super(context, exec, deletionContext, nodeStatusUpdater, metrics,
+    super(context, new CompositeContainerExecutor(exec), deletionContext,
+        nodeStatusUpdater, metrics,
       applicationACLsManager, dirsHandler);
   }
 
   @Override
   @SuppressWarnings("unchecked")
   protected ResourceLocalizationService createResourceLocalizationService(
-      ContainerExecutor exec, DeletionService deletionContext, Context context) {
+      CompositeContainerExecutor exec, DeletionService deletionContext,
+      Context context) {
     return new ResourceLocalizationService(super.dispatcher, exec,
         deletionContext, super.dirsHandler, context) {
       @Override
@@ -143,7 +145,7 @@ public class DummyContainerManager extends ContainerManagerImpl {
   @Override
   @SuppressWarnings("unchecked")
   protected ContainersLauncher createContainersLauncher(Context context,
-      ContainerExecutor exec) {
+      CompositeContainerExecutor exec) {
     return new ContainersLauncher(context, super.dispatcher, exec,
                                   super.dirsHandler, this) {
       @Override

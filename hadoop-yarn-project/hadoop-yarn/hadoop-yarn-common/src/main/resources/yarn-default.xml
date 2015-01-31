@@ -688,10 +688,20 @@
   </property>
 
   <property>
-    <description>who will execute(launch) the containers.</description>
+    <description>A comma separated list of container executor class who can
+      execute (launch) the containers.</description>
     <name>yarn.nodemanager.container-executor.class</name>
     <value>org.apache.hadoop.yarn.server.nodemanager.DefaultContainerExecutor</value>
 <!--<value>org.apache.hadoop.yarn.server.nodemanager.LinuxContainerExecutor</value>-->
+  </property>
+
+  <property>
+    <description>The default container executor to execute(launch) the
+      containers when submit containers without specify container
+      executor. The default value is taken from
+      ${yarn.nodemanager.container-executor.class} if it contains
+      only one class.</description>
+    <name>yarn.nodemanager.default.container-executor.class</name>
   </property>
 
   <property>
